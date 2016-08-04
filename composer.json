@@ -1,0 +1,9 @@
+{
+    "name": "bernard/le-kingdoms",
+    "description": "Le Kingdoms by Sythe.org",
+    "type": "project",
+    "require-dev": {
+        "team-reflex/discord-php": "^4.0"
+    },
+    "require": {}
+}

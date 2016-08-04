@@ -1,0 +1,86 @@
+CREATE TABLE `items` (
+`kingdom` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+`item` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+`amountleft` int(11) DEFAULT '0',
+PRIMARY KEY (`kingdom`,`item`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE `kingdom` (
+`username` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
+`locations` mediumtext COLLATE utf8_unicode_ci,
+`L` int(11) DEFAULT NULL,
+`G` int(11) DEFAULT '0',
+`F` smallint(6) DEFAULT '0',
+`W` smallint(6) DEFAULT '0',
+`S` smallint(6) DEFAULT '0',
+`M` smallint(6) DEFAULT '0',
+`B` smallint(6) DEFAULT '0',
+`FA` smallint(6) DEFAULT '0',
+`MN` smallint(6) DEFAULT '0',
+`FR` smallint(6) DEFAULT '0',
+`SM` smallint(6) DEFAULT '0',
+`BT` smallint(6) DEFAULT '0',
+`U` smallint(6) DEFAULT '0',
+`WF` smallint(6) DEFAULT '0',
+`BK` smallint(6) DEFAULT '0',
+`TC` smallint(6) DEFAULT '0',
+`H` smallint(6) DEFAULT '0',
+`T` smallint(6) DEFAULT '0',
+`P` smallint(6) DEFAULT '0',
+`I` smallint(6) DEFAULT '0',
+`IA` smallint(6) DEFAULT '0',
+`PR` smallint(6) DEFAULT '0',
+`D` smallint(6) DEFAULT '0',
+`ST` smallint(6) DEFAULT '0',
+`Q` smallint(6) DEFAULT '0',
+`R` smallint(6) DEFAULT '0',
+`HO` smallint(6) DEFAULT '0',
+`WO` smallint(6) DEFAULT '0',
+`WA` smallint(6) DEFAULT '0',
+`TI` smallint(6) DEFAULT '0',
+`SI` mediumint(9) DEFAULT NULL,
+`WM` smallint(6) DEFAULT '0',
+PRIMARY KEY (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+ CREATE TABLE `reports` (
+`user` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+`report` longtext COLLATE utf8_unicode_ci,
+`timestamp` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
+PRIMARY KEY (`user`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+ CREATE TABLE `spells` (
+`castby` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+`caston` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+`duration` tinyint(4) DEFAULT '1',
+`spell` varchar(20) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+PRIMARY KEY (`caston`,`castby`,`spell`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+CREATE TABLE `turnnotes` (
+`fromuser` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+`touser` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+`notes` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL,
+PRIMARY KEY (`fromuser`,`touser`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+CREATE TABLE `worldvars` (
+`name` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+`value` varchar(1000) COLLATE utf8_unicode_ci DEFAULT NULL,
+PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+/*
+mysql> select * from worldvars;
++----------+------------+
+| name     | value      |
++----------+------------+
+| turns    | 37         |
+| lastturn | 1470312367 |
+| ageof    | #2016      |
+| turnfreq | 4          |
++----------+------------+
+4 rows in set (0.00 sec)
+** these need to be inserted into the db before running
+** ageof is the name of the age (world)
+** turns is the number of terms since the age began
+** turnfreq is number of hours per turn (not used I think)
+** lastturn is unixtimestamp of last world turn
+*/

@@ -1,5 +1,5 @@
 <?php
-
+require_once "DBCommunicator.php";
 /**
  * Created by PhpStorm.
  * User: Bernard
@@ -8,12 +8,19 @@
  */
 abstract class Command
 {
-    private $_message;
-    private $_user;
-    public function __construct($message, $user)
+    /** @var DiscordMessage */
+    protected $__message;
+    /** @var DBCommunicator */
+    protected $__db;
+    protected $__kingdom;
+    /** @var Communicator */
+    protected $__communicator;
+    public function __construct($message, $kingdom, $communicator)
     {
-        $this->_message = $message;
-        $this->_user = $user;
+        $this->__message = $message;
+        $this->__kingdom = $kingdom;
+        $this->__db = DBCommunicator::getInstance();
+        $this->__communicator = $communicator;
     }
 
     abstract function execute();

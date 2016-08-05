@@ -3,6 +3,7 @@ $turnonly =  false;
 
 include __DIR__.'/vendor/autoload.php';
 
+require_once "DBCommunicator.php";
 require_once "config.inc.php";
 require_once "Models/DiscordMessage.php";
 require_once "Kingdom.php";
@@ -109,14 +110,13 @@ $discord->on('ready', function ($discord) {
                 return;
             }
 
-            $bot = new Kingdom(DB_HOST, DB_USER, '', DB_NAME, $message->channel, $glochannel);
+            $bot = new Kingdom($input, $message->channel, $glochannel);
             //		$message->reply('c');
             $username = "";
-            $row = $bot->q("select username from discord_player where guid = UNHEX('" . bin2hex('' . $message->author->id) . "');") or print(mysql_error());
+            $row = DBCommunicator::getInstance()->executeQuery("select username from discord_player where guid = UNHEX('" . bin2hex('' . $message->author->id) . "');") or print(mysql_error());
             if ($row === FALSE) {
-
-                $bot->q("insert into discord_player (guid, username) values ( UNHEX('" . bin2hex(''.$message->author->id) . "'), UNHEX('" . bin2hex($message->author->username) . "'));") or print(mysql_error());
-                $row = $bot->q("select username from discord_player where guid = UNHEX('" . bin2hex(''.$message->author->id) . "');")  or print(mysql_error());
+                DBCommunicator::getInstance()->executeQuery("insert into discord_player (guid, username) values ( UNHEX('" . bin2hex(''.$message->author->id) . "'), UNHEX('" . bin2hex($message->author->username) . "'));") or print(mysql_error());
+                $row = DBCommunicator::getInstance()->executeQuery("select username from discord_player where guid = UNHEX('" . bin2hex(''.$message->author->id) . "');")  or print(mysql_error());
             }
             if (!array_key_exists('username', $row)) {
                 $message->reply("Not sure who you are <@" . $message->author->id . ">");

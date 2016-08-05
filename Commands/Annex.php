@@ -7,9 +7,9 @@
  */
 class Annex extends Command
 {
-    public function __construct($message, $user)
+    public function __construct($message, $kingdom, $communicator)
     {
-        parent::__construct($message, $user);
+        parent::__construct($message, $kingdom, $communicator);
     }
 
     function annex()
@@ -94,9 +94,9 @@ class Annex extends Command
 
 class AutoAnnex extends Command
 {
-    public function __construct($message, $user)
+    public function __construct($message, $kingdom, $communicator)
     {
-        parent::__construct($message, $user);
+        parent::__construct($message, $kingdom, $communicator);
     }
 
     function autoAnnex()

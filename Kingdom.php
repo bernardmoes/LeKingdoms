@@ -1,5 +1,7 @@
 <?php
+require_once "DBCommunicator.php";
 require_once "Command.php";
+require_once "Communicators/DiscordCommunicator.php";
 foreach (glob("Commands/*.php") as $filename)
 {
     require_once $filename;
@@ -21,65 +23,32 @@ require_once "CommandEvaluator.php";
 class Kingdom {
     public $channel;
     public $glochannel;
-    public $db;
     public $lastturn;
 
-    public function pm($u, $m) {
-        $this->channel->sendMessage("```@" . $u . ": " . $m . '```');
-    }
-
-    public function room($m) {
-        $this->glochannel->sendMessage('```' . $m . '```');
-    }
-
-    public function both($u, $m) {
-        $this->room( $m );
-        if ($this->channel->channel_id == $this->glochannel->channel_id) return;
-        $this->pm($u, $m);
-    }
-
-    public function reply($u, $ispm, $m) {
-        $this->pm( $u, $m );
-    }
-
-    public function q($sql) {
-        //	print($sql . "\n");
-        $result = $this->db->query($sql);
-
-        if($result && $result->num_rows > 0) {
-            if($row = $result->fetch_assoc()) {
-                return $row;
-            }
-        }
-        return false;
-    }
 
     public function random_location() {
         return rand(0,100) . ":" . rand(0,100);
     }
 
-
+    /** @var CommandEvaluator */
     private $_commandEvaluator;
-
-    public function __construct($server, $username, $password, $dbname, $channel, $glochannel) {
+    /** @var DBCommunicator */
+    private $_db;
+    private $_user;
+    /** @var Communicator */
+    private $_communicator;
+    public function __construct(DiscordMessage $input, $channel, $glochannel) {
+        $db = DBCommunicator::getInstance();
+        $user = $db->getKingdom($input->getAuthorName());
+        $this->_db = $db;
         $this->channel = $channel;
         $this->glochannel = $glochannel;
-        $this->db = new mysqli($server, $username, $password, $dbname) or die('couldnt connect');
-        if (mysqli_connect_errno()) {
-            //	printf("Connect failed: %s\n", mysqli_connect_error());
-            //	$this->room("could not connect to le database. sorry");
-            //	exit();
-        }
-
-        $this->_commandEvaluator = new CommandEvaluator();
-    }
+        $this->_user = $user;
+        $communicator = new DiscordCommunicator($channel, $glochannel);
+        $this->_communicator = $communicator;
+        $this->_commandEvaluator = new CommandEvaluator($user, $communicator);
 
 
-    public function get_kingdom($u) {
-        $d = $this->q(
-            'SELECT * FROM kingdom WHERE username = "' . clean($u) . '";'
-        );
-        return $d;
     }
 
 
@@ -293,7 +262,7 @@ class Kingdom {
         //		,xx:yy
         //		xx:yy
 
-        $taken =$this->q("SELECT username FROM kingdom WHERE locations LIKE \"%," . $l . ",%\" OR locations LIKE \"" . $l . ",%\" OR locations LIKE \"%," . $l . "\"  OR locations = \"" . $l . "\";");
+        $taken = $this->_db->executeQuery("SELECT username FROM kingdom WHERE locations LIKE \"%," . $l . ",%\" OR locations LIKE \"" . $l . ",%\" OR locations LIKE \"%," . $l . "\"  OR locations = \"" . $l . "\";");
         if ($taken !== false) return $taken["username"];
         return false;
 
@@ -308,7 +277,7 @@ class Kingdom {
     public function find_nearest_tile_of_user($u, $loca) {
         $u = clean($u);
 
-        $k = $this->get_kingdom($u);
+        $k = $this->_db->getKingdom($u);
 
         $locations = $this->make_loc_array($k['locations']);
 
@@ -337,8 +306,6 @@ class Kingdom {
         return $smallestloc;
     }
 
-
-
     public function obliterate($u, $cloc) {
         //execute obliterate command
     }
@@ -360,7 +327,7 @@ class Kingdom {
         $updates[] = "locations = \"" . implode(",", array_unique($this->make_loc_array(clean($k['locations'])))) . "\"";
 
         $updateq = "UPDATE kingdom SET " . implode(", ", $updates) . " WHERE username = \"" . clean($k['username']) . "\" LIMIT 1;";
-        $this->q($updateq);
+        $this->_db->executeQuery($updateq);
 
     }
 
@@ -472,7 +439,7 @@ class Kingdom {
         $from = clean($from);
         $to = clean($to);
         $note = clean_note($note);
-        $this->q("INSERT INTO turnnotes (fromuser, touser, notes) VALUES (\"" . clean($from) . "\", \"" . clean($to) . "\", \"" . clean_note($note) . "\") ON DUPLICATE KEY UPDATE notes = CONCAT(notes, \"\\n\", \"" . clean_note($note) . "\");");
+        $this->_db->executeQuery("INSERT INTO turnnotes (fromuser, touser, notes) VALUES (\"" . clean($from) . "\", \"" . clean($to) . "\", \"" . clean_note($note) . "\") ON DUPLICATE KEY UPDATE notes = CONCAT(notes, \"\\n\", \"" . clean_note($note) . "\");");
     }
 
     public function resolve_location_from_input($loc) {
@@ -481,7 +448,7 @@ class Kingdom {
             $player = $this->get_username_at_location($loc);
             if (!$player) return false;
         } else {
-            $player = $this->get_kingdom($loc);
+            $player = $this->_db->getKingdom($loc);
             if ($player === false) return false;
             if (strrpos($player['locations'], ",") !== false) {
                 $loc = explode(",",$player['locations']);
@@ -496,7 +463,7 @@ class Kingdom {
     public function get_active_spells($u) {
 
         $u = clean($u);
-        $result = $this->db->query("SELECT * FROM spells WHERE caston = \"" . clean($u) . "\";");
+        $result = $this->_db->executeQuery("SELECT * FROM spells WHERE caston = \"" . clean($u) . "\";");
 
         $activespells = array();
         if ($result->num_rows > 0) {
@@ -510,8 +477,8 @@ class Kingdom {
     }
 
     public function turn_remove_old_spells() {
-        $this->db->query("UPDATE spells SET duration = duration - 1;");
-        $this->db->query("DELETE FROM spells WHERE duration <= 0;");
+        $this->_db->executeQuery("UPDATE spells SET duration = duration - 1;");
+        $this->_db->executeQuery("DELETE FROM spells WHERE duration <= 0;");
     }
 
     public function  cast($spell, $victim, $attacker) {

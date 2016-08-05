@@ -8,9 +8,9 @@
  */
 class Gift extends Command
 {
-    public function __construct($message, $user)
+    public function __construct($message, $kingdom, $communicator)
     {
-        parent::__construct($message, $user);
+        parent::__construct($message, $kingdom, $communicator);
     }
 
     function execute()

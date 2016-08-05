@@ -8,13 +8,13 @@
  */
 class Help extends Command
 {
-    public function __construct($message, $user)
+    public function __construct($message, $kingdom, $communicator)
     {
-        parent::__construct($message, $user);
+        parent::__construct($message, $kingdom, $communicator);
     }
 
     function execute()
     {
-        $this->reply($user,$p, "just some of the commands: !stats !players !build !attack !annex !cast !trade !prices !spells !espionage !thieve and others. see play guide for details: http://www.sythe.org/threads/le-kingdoms-gameplay-manual.1601391/");
+        $this->__communicator->sendReply($this->__message->getAuthorName(), "just some of the commands: !stats !players !build !attack !annex !cast !trade !prices !spells !espionage !thieve and others. see play guide for details: http://www.sythe.org/threads/le-kingdoms-gameplay-manual.1601391/");
     }
 }

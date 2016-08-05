@@ -23,7 +23,17 @@ class CommandEvaluator
         'checkturn' => 'checkturn()', 'report' => 'report()'
     );
 
+    /** @var DiscordMessage */
     private $_message;
+    /** @var Command */
+    private $_command;
+    private $_user;
+    private $_communicator;
+    public function __construct($user, $communicator)
+    {
+        $this->_user = $user;
+        $this->_communicator = $communicator;
+    }
 
     public function evaluateCommand(DiscordMessage $message)
     {
@@ -33,6 +43,16 @@ class CommandEvaluator
             eval('return $this->'.$this->_commands[$this->_message->getContentArgs()[0]].';');
         } else {
             $this->unknownCommand();
+        }
+
+        $this->executeCommand();
+    }
+
+    public function executeCommand()
+    {
+        if($this->_command != null)
+        {
+            $result = $this->_command->execute();
         }
     }
 
@@ -48,7 +68,7 @@ class CommandEvaluator
 
     public function help()
     {
-
+        $this->_command = new Help($this->_message, $this->_user, $this->_communicator);
     }
 
     public function cash()

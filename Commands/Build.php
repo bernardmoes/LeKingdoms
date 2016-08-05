@@ -8,9 +8,9 @@
  */
 class Build extends Command
 {
-    public function __construct($message, $user)
+    public function __construct($message, $kingdom, $communicator)
     {
-        parent::__construct($message, $user);
+        parent::__construct($message, $kingdom, $communicator);
     }
 
     function buildNow()
@@ -123,9 +123,9 @@ class Build extends Command
 
 class BuildMax extends Command
 {
-    public function __construct($message, $user)
+    public function __construct($message, $kingdom, $communicator)
     {
-        parent::__construct($message, $user);
+        parent::__construct($message, $kingdom, $communicator);
     }
 
     function buildMaxNow()

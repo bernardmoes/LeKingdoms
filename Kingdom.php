@@ -110,76 +110,6 @@ class Kingdom {
         return $m . implode(",  ", $a);
     }
 
-
-    /***
-    CORE VALUES:
-    L	= 	LAND (acres)
-    G	= 	GOLD (gp)
-    F	=	FOOD (bushels)
-    W	=	WEAPONS (number)
-    S	=	SOLDIERS
-    M	=	MAGIC
-    I	=	IRON
-    P	=	PEOPLE
-
-    R	=	ROCK (STONE)
-    HO	=	HORSES
-    WO	=	WOOD
-    WA	=	WATER
-
-
-    BUILDINGS:
-    B	=	BANKS			[ LU =  2	C =  10 ]
-    FA	=	FARMS			[ LU = 10	C =  50 ]
-    MN	=	MINES			[ LU =  5	C = 100 ]
-    FR	=	FORESTS			[ LU = 10	C =  30 ]
-    SM	=	SMELTERS		[ LU =  2	C =  20 ]
-    BT	=	BATTLEMENTS		[ LU =  1 	C =  25 ]
-    U	=	military school 		[ LU = 10 	C =  50 ]
-    PR	=	PREISTHOODS		[ LU =  5 	C =  60 ]
-    WF	=	WEAPONS	FACTORY 	[ LU =  2 	C =  50 ]
-    BK	=	BARRACKS		[ LU =  5 	C = 100 ]
-    TC	=	TRADE	CENTER		[ LU =  1 	C =  10 ]
-    H	=	HOUSING			[ LU =  5 	C =  40 ]
-    T	=	THEIVES	DEN		[ LU =  1 	C =  20 ]
-    IA	=	INTELLIGENCE AGENCY 	[ LU =  1 	C = 100 ]
-
-    D	=	DAMS
-    ST	=	STABLES
-    Q	=	QUARRY
-
-    ROUND INFO:
-    SG	= 	START GOLD
-    SI	=	START IRON
-    SF	=	START FOOD
-    SP	=	START POPULATION
-    SS	=	START SOLDIERS
-
-    RR	=	ROUND RATE (10 minutes)
-    GPR	=	ROUND BASE GOLD RATE
-    GPB	= 	ROUND GOLD PER BANK
-    FPF	=	ROUND FOOD PER FARM
-    FPP	=	ROUND FOOD CONSUMED PER HEAD POPULATION
-
-    IPM	=	ROUND IRON PER MINE
-    WPF	=	ROUND WEAPONS PER FACTORY
-    SPB	=	ROUND SOLDIERS PER BARRACKS
-
-    LPK	=	LAND PER KINGDOM = 200
-    CTA	=	COST TO ANNEX = 500
-
-    SPELL INFO:
-    DROUGHT	=	rand(30,70) food production
-    RAIN		=	rand(100, 130) food production
-    plague		=	rand(0,10) population reduction
-    FIRE		=	rand(0, 10) razing of structures - negated by rain
-    HEAL		=	negate plague
-    PICKPOCKET	=	rand(0, 10) easier to steal from
-
-     ***/
-
-
-
     public static $buildings;
     public static $buildings_key;
     public static $buildings_lookup;
@@ -248,23 +178,6 @@ class Kingdom {
         //execute annex command
     }
 
-    public function save_kingdom($k) {
-        $updates = array();
-        foreach($k as $key => $v) {
-
-            if ($key != "username" && $key != "locations"){
-                if ($v < 0) $v = 0;
-                $updates[] = $key . "=" . round($v);
-            }
-        }
-
-        $updates[] = "locations = \"" . implode(",", array_unique($this->make_loc_array(clean($k['locations'])))) . "\"";
-
-        $updateq = "UPDATE kingdom SET " . implode(", ", $updates) . " WHERE username = \"" . clean($k['username']) . "\" LIMIT 1;";
-        $this->_db->executeQuery($updateq);
-
-    }
-
     public function turn() {
         //execute turn kingdom command
     }
@@ -286,17 +199,6 @@ class Kingdom {
         $effectiveness = $weaponspersoldier + $horsessoldier + ($militaryschoolperbarracks / 20);
 
         return pow($k['S'] * $effectiveness * (($k['SI'] + 2)/2), ($k['WM'] + 1)) ;
-
-    }
-
-    public function make_loc_array($locstring) {
-        $loc = array();
-        if (strrpos($locstring, ',') === false) {
-            $loc[] = $locstring;
-        } else {
-            $loc = explode(',' , $locstring);
-        }
-        return $loc;
 
     }
 
@@ -367,47 +269,6 @@ class Kingdom {
 
     public function sellall($u, $item) {
        //execute sell all command
-    }
-
-    public function add_turn_note($from, $to, $note) {
-        $from = clean($from);
-        $to = clean($to);
-        $note = clean_note($note);
-        $this->_db->executeQuery("INSERT INTO turnnotes (fromuser, touser, notes) VALUES (\"" . clean($from) . "\", \"" . clean($to) . "\", \"" . clean_note($note) . "\") ON DUPLICATE KEY UPDATE notes = CONCAT(notes, \"\\n\", \"" . clean_note($note) . "\");");
-    }
-
-    public function resolve_location_from_input($loc) {
-        if (strrpos($loc, ":") !== false) {
-            // location
-            $player = $this->get_username_at_location($loc);
-            if (!$player) return false;
-        } else {
-            $player = $this->_db->getKingdom($loc);
-            if ($player === false) return false;
-            if (strrpos($player['locations'], ",") !== false) {
-                $loc = explode(",",$player['locations']);
-                $loc = $loc[0];
-            } else $loc = $player['locations'];
-            if ($loc == "") return false;
-        }
-        return $loc;
-    }
-
-
-    public function get_active_spells($u) {
-
-        $u = clean($u);
-        $result = $this->_db->executeQuery("SELECT * FROM spells WHERE caston = \"" . clean($u) . "\";");
-
-        $activespells = array();
-        if ($result->num_rows > 0) {
-            while($spells = $result->fetch_assoc()) {
-                if (!isset($activespells[$spells['spell']])) $activespells[$spells['spell']] = 0;
-                $activespells[$spells['spell']] += 1;
-            }
-        }
-
-        return $activespells;
     }
 
     public function turn_remove_old_spells() {

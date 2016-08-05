@@ -16,7 +16,7 @@ class Spells extends Command
     function execute()
     {
         $report = "spells:\n";
-        foreach(self::$spells as $s => $a) {
+        foreach(Kingdom::$spells as $s => $a) {
             $report .= $s . " costs " . $a['r'] . " runes and lasts " . $a['l'] . " turns and " . $a['d'] . "\n";
         }
         return $this->__communicator->sendReply($this->__message->getAuthorName(), $report);

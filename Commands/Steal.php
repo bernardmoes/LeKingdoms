@@ -13,22 +13,22 @@ class Steal extends Command
         parent::__construct($message, $kingdom, $communicator);
     }
 
-    function stealNow()
+    function stealNow($loc, $u)
     {
         $loc = clean($loc);
         $u = clean($u);
 
-        $victim = $this->get_username_at_location($loc);
+        $victim = KingdomHelper::get_username_at_location($loc);
         if ($victim === false) return "cannot thieve from " . $loc . " as no kingdom exists there.";
 
-        $v = $this->get_kingdom($victim);
-        $a = $this->get_kingdom($u);
+        $v = $this->__db->getKingdom($victim);
+        $a = $this->__db->getKingdom($u);
 
         if ($v['username'] == $a['username']) return "you cannot thieve from yourself!";
 
         if ($a['T'] == 0) return "you cannot thieve until you have at least one thieves den. try !build thieves den";
 
-        $alreadythieved = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($a['username']) . "\" AND caston = \"" . clean($v['username']) . "\" AND spell = \"(thieved)\" LIMIT 1;");
+        $alreadythieved = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($a['username']) . "\" AND caston = \"" . clean($v['username']) . "\" AND spell = \"(thieved)\" LIMIT 1;")->fetchAll(PDO::FETCH_ASSOC);
         if ($alreadythieved) return "you've already thieved " . $v['username'] . " this turn. your thieves are enjoying their spoils and cannot be persuaded to thieve this kingdom again until next turn";
 
         $ratio =  ($v['T']*1.2 + 1) / ($a['T'] + 1);
@@ -42,7 +42,7 @@ class Steal extends Command
             $steal = rand(0, 30);
         } else if ($ratio < 0.75) {
             $report .= "their reach was limited due being detected by the enemy's own thieves. ";
-            $this->add_turn_note($a['username'], $v['username'], $a['username'] . "'s spys were caught in our kingdom");
+            KINGDOMHELPER::add_turn_note($a['username'], $v['username'], $a['username'] . "'s spys were caught in our kingdom");
             $steal = rand(0, 10);
         } else if ($ratio < 1) {
             $report .= "they were outnumbered by the enemy's own thieves. ";
@@ -60,8 +60,8 @@ class Steal extends Command
         if ($v['G'] < 0) $v['G'] = 0;
         $a['G'] += $steal;
 
-        $this->save_kingdom($v);
-        $this->save_kingdom($a);
+        $this->__db->saveKingdom($v);
+        $this->__db->saveKingdom($a);
 
         $this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($a['username']) . "\", \"" . clean($v['username']) . "\", \"(thieved)\", 1);");
 
@@ -70,9 +70,9 @@ class Steal extends Command
 
     function execute()
     {
-        if (count($c) < 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can use your thieves dens to !thieve nn:mm or !thieve username other kingdoms");
-        $loc =  $this->resolve_location_from_input($c[1]);
-        if ($loc === false) return $this->__communicator->sendReply($this->__message->getAuthorName(), "cannot thieve from " . $c[1] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
-        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->thieve($loc, $user));
+        if (count($this->__message->getContentArgs()) < 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can use your thieves dens to !thieve nn:mm or !thieve username other kingdoms");
+        $loc =  KingdomHelper::resolve_location_from_input($this->__message->getContentArgs()[1]);
+        if ($loc === false) return $this->__communicator->sendReply($this->__message->getAuthorName(), "cannot thieve from " . $this->__message->getContentArgs()[1] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->stealNow($loc, $this->__message->getAuthorName()));
     }
 }

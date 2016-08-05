@@ -15,13 +15,15 @@ class Items extends Command
 
     function execute()
     {
-        $result = $this->db->query("SELECT item, amountleft FROM items WHERE kingdom = \"" . clean($user) . "\";");
+        $result = $this->__db->executeQuery("SELECT item, amountleft FROM items WHERE kingdom = \"" . clean($this->__message->getAuthorName()) . "\";")->fetchAll(PDO::FETCH_ASSOC);
         $report = '';
 
-        if ($result && $result->num_rows > 0) {
+        if ($result && count($result) > 0) {
             $report .= "your kingdom has the following magical items in its possession:\n";
-            while($notes = $result->fetch_assoc())  $report .=  $notes['item'] . ' with ' . $notes['amountleft'] . ' uses remaining'. "\n";
-
+            foreach($result as $notes)
+            {
+                $report .=  $notes['item'] . ' with ' . $notes['amountleft'] . ' uses remaining'. "\n";;
+            }
         } else {
             $report .= "your kingdom possesses no magical items at this time.";
 

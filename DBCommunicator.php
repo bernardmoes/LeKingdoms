@@ -14,7 +14,7 @@ class DBCommunicator
 
     private function __construct()
     {
-        $this->db = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME) or die('couldnt connect');
+        $this->_db = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME, DB_USER, DB_PASSWORD) or die("can't connect mysql");
     }
 
     public static function getInstance()
@@ -26,21 +26,31 @@ class DBCommunicator
         return DBCommunicator::$_instance;
     }
 
-    public function executeQuery($query)
+    public function executeQuery($sql)
     {
-        $result = $this->db->query($query);
-
-        if($result && $result->num_rows > 0) {
-            if($row = $result->fetch_assoc()) {
-                return $row;
-            }
-        }
-        return false;
+        $sth = $this->_db->prepare($sql);
+        $sth->execute();
+        return $sth;
     }
 
     public function getKingdom($u) {
-        return $this->executeQuery(
-            'SELECT * FROM kingdom WHERE username = "' . clean($u) . '";'
-        );
+        return $this->executeQuery('SELECT * FROM kingdom WHERE username = "' . clean($u) . '";')->fetch(PDO::FETCH_ASSOC);;
+    }
+
+    public function saveKingdom($k) {
+        $updates = array();
+        foreach($k as $key => $v) {
+
+            if ($key != "username" && $key != "locations"){
+                if ($v < 0) $v = 0;
+                $updates[] = $key . "=" . round($v);
+            }
+        }
+
+        $updates[] = "locations = \"" . implode(",", array_unique(KingdomHelper::make_loc_array(clean($k['locations'])))) . "\"";
+
+        $updateq = "UPDATE kingdom SET " . implode(", ", $updates) . " WHERE username = \"" . clean($k['username']) . "\" LIMIT 1;";
+        $this->executeQuery($updateq);
+
     }
 }

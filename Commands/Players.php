@@ -15,16 +15,15 @@ class Players extends Command
 
     function execute()
     {
-        $result = $this->__db->executeQuery("SELECT username FROM kingdom WHERE locations <> \"\";");
+        $result = $this->__db->executeQuery("SELECT username FROM kingdom WHERE locations <> \"\";")->fetchAll(PDO::FETCH_ASSOC);;
 
         $kingdoms = array();
-        if ($result->num_rows > 0) {
-            while($kingdom = $result->fetch_assoc()) {
-                $kingdoms[] = $kingdom['username'] ;
+        if ($result && count($result) > 0) {
+            foreach($result as $kingdom)
+            {
+                $kingdoms[] = $kingdom['username'];
             }
         }
-
-
         return $this->__communicator->sendReply($this->__message->getAuthorName(), sprintf("currently active kingdoms: %s", implode(", ", $kingdoms)));
     }
 }

@@ -107,7 +107,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Steal($this->_message, $this->_kingdom, $this->_communicator);
         }
     }
 
@@ -115,7 +115,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Spy($this->_message, $this->_kingdom, $this->_communicator);
         }
     }
 
@@ -123,7 +123,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Spells($this->_message, $this->_kingdom, $this->_communicator);
         }
     }
 
@@ -131,7 +131,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Items($this->_message, $this->_kingdom, $this->_communicator);
         }
     }
 
@@ -139,7 +139,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            
         }
     }
 
@@ -267,7 +267,7 @@ class CommandEvaluator
     {
         if(($this->_message->isAdmin() || $this->_message->isAuthorizedBot()))
         {
-
+            $this->_command = new Turn($this->_message, $this->_kingdom, $this->_communicator);
         }
     }
 

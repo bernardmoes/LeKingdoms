@@ -15,19 +15,19 @@ class Turn extends Command
 
     function execute()
     {
-        $result = $this->db->query("SELECT * FROM kingdom;");
-
-        if ($result->num_rows > 0) {
-            while($kingdom = $result->fetch_assoc()) {
+        $result = $this->__db->executeQuery("SELECT * FROM kingdom;")->fetchAll(PDO::FETCH_ASSOC);
+        if (count($result) > 0) {
+            foreach($result as $kingdom)
+            {
                 $this->turn_kingdom($kingdom);
             }
         }
 
-        $this->db->query("UPDATE worldvars SET value = value + 1 WHERE name = 'turns';");
-        $this->db->query("UPDATE worldvars SET value = " . time() . " WHERE name = 'lastturn';");
+        $this->__db->executeQuery("UPDATE worldvars SET value = value + 1 WHERE name = 'turns';");
+        $this->__db->executeQuery("UPDATE worldvars SET value = " . time() . " WHERE name = 'lastturn';");
 
-        $this->turn_remove_old_spells();
-        broadcast("<TURNED>");
+        KingdomHelper::turn_remove_old_spells();
+        $this->__communicator->sendBoth($this->__message->getAuthorName(), "<TURNED>");
     }
 
     public function turn_kingdom($k) {
@@ -36,7 +36,7 @@ class Turn extends Command
 
         $report = "your kingdom has been updated! here's what happened in the last round:\n";
 
-        $activespells = $this->get_active_spells($k['username']);
+        $activespells = KingdomHelper::get_active_spells($k['username']);
 
 
         if (!isset($activespells['drought'])) $activespells['drought'] = 0;
@@ -48,14 +48,14 @@ class Turn extends Command
 
         $k['G'] = round($k['G']);
 
-        $t = round(self::$GPR + self::$GPB * $k['B'] + self::$IPF * $k['FR'] + ($k['P']*15)/($k['S'] + 1));
+        $t = round(ROUND_GOLD + ROUND_GOLD_PER_BANK * $k['B'] + INCOME_PER_FOREST * $k['FR'] + ($k['P']*15)/($k['S'] + 1));
         $k['G'] += $t;
         $report .=  $t . " gc were added to your coffers! you now have " . ($k['G']) . " gc\n";
 
 
 
 
-        $t = self::$FPF * $k['FA'] + self::$FPR * $k['FR'];
+        $t = FOOD_PER_FARM * $k['FA'] + FOOD_PER_FOREST * $k['FR'];
 
         $drought = rand(0, 30) * ($activespells['drought'] - $activespells['rain']);
         if ($drought > 100) $drought = 100;
@@ -67,13 +67,13 @@ class Turn extends Command
 
 
 
-        $t = round(self::$WPD * $k['D'] * (rand(60,140)/100) * ((100 - $drought)/100));
+        $t = round(WATER_PER_DAM * $k['D'] * (rand(60,140)/100) * ((100 - $drought)/100));
 
         if ($t < 0) $t = 0;
 
         $needdams = false;
-        if ($t + $k['WA'] > self::$WDL * $k['D']) {
-            $t = self::$WDL * $k['D'] - $k['WA'];
+        if ($t + $k['WA'] > WATER_DAM_LIMIT * $k['D']) {
+            $t = WATER_DAM_LIMIT * $k['D'] - $k['WA'];
             $needdams = true;
         }
 
@@ -82,8 +82,8 @@ class Turn extends Command
         $k['WA'] += $t;
 
 
-        $t = self::$FPP * ($k['P'] + $k['S']);
-        $y = self::$WPP * ($k['P'] + $k['S']);
+        $t = FOOD_CONSUMED_PER_HEAD_POPULATION * ($k['P'] + $k['S']);
+        $y = WATER_CONSUMED_PER_HEAD_POPULATION * ($k['P'] + $k['S']);
 
         $foodneeded = 0;
         $waterneeded = 0;
@@ -136,9 +136,9 @@ class Turn extends Command
         $soldkilledbyplague = abs(rand(0, ($k['S'] > 20 ? $k['S']/5 : 3 )) * ($plague > 0));
 
 
-        $popcap = round(self::$PPH * $k['H']);
+        $popcap = round(PEOPLE_PER_HOUSE * $k['H']);
 
-        $t = round(self::$PRR * $k['P']);
+        $t = round(POPULATIO_NREPRODUCTION_RATE * $k['P']);
         if ($t + $k['P'] > $popcap) {
             $t = $popcap - $k['P'];
             if ($t < 0) $t = 0;
@@ -159,9 +159,9 @@ class Turn extends Command
 
 
 
-        $soldcap = round( self::$SPB * $k['BK'] );
+        $soldcap = round( SOLDIERS_PER_BARRACKS * $k['BK'] );
 
-        $t = round(self::$SRR * $k['BK']);
+        $t = round(ROUND_SOLDIERS_PER_BARRACKS * $k['BK']);
         if ($t + $k['S'] > $soldcap) {
             $t = $soldcap - $k['S'];
             if ($t < 0) $t = 0;
@@ -179,8 +179,8 @@ class Turn extends Command
 
 
 
-        $horsecap = round(self::$HPS * $k['ST']);
-        $t = round(self::$HRR * ($k['HO'] + 1));
+        $horsecap = round(HORSES_PER_STABLE * $k['ST']);
+        $t = round(HORSE_REPRODUCTION_RATE * ($k['HO'] + 1));
         if ($t + $k['HO'] > $horsecap) {
             $t = $horsecap - $k['HO'];
             if ($t < 0) $t = 0;
@@ -208,7 +208,7 @@ class Turn extends Command
         if ($foodneeded) $report .= "your population is unable to expand because it is starving to death!\n";
 
 
-        $t = round(self::$WOF * $k['FR'] * (1 + ($k['FR'] / 20 > 1 ? 1 : $k['FR'] / 20)));
+        $t = round(WOOD_PER_FOREST * $k['FR'] * (1 + ($k['FR'] / 20 > 1 ? 1 : $k['FR'] / 20)));
         $report .= $t . " faggots of lumber were harvested\n";
         $k['WO'] += $t;
 
@@ -222,24 +222,24 @@ class Turn extends Command
 
          */
 
-        $t = round(self::$SPQ * $k['Q'] * (1 + ($k['Q'] / 20 > 1 ? 1 : $k['Q'] / 20)));
+        $t = round(STONE_PER_QUARRY * $k['Q'] * (1 + ($k['Q'] / 20 > 1 ? 1 : $k['Q'] / 20)));
         $report .= $t . " ton of stone was extracted\n";
         $k['R'] += $t;
 
 
 
-        $t = round(self::$IPM * $k['MN'] * (1 + ($k['SM'] / 20 > 1 ? 1 : $k['SM'] / 20)));
+        $t = round(ROUND_IRON_PER_MINE * $k['MN'] * (1 + ($k['SM'] / 20 > 1 ? 1 : $k['SM'] / 20)));
         $report .= $t . " bars of iron were mined\n";
         $k['I'] += $t;
 
-        $t = self::$WPF * $k['WF'] * (1 + ($k['SM'] / 40 > 1 ? 1 : $k['SM'] / 40));
+        $t = ROUND_WEAPON_PER_FACTORY * $k['WF'] * (1 + ($k['SM'] / 40 > 1 ? 1 : $k['SM'] / 40));
         if ($t > $k['I']) $t = $k['I'];
         $t = round($t);
         $report .= $t . " weapons were produced. your iron stocks are now " . $k['I'] . "\n";
         $k['W'] += $t;
         $k['I'] -= $t;
 
-        $t= self::$MPP * $k['PR'];
+        $t= MAGIC_PER_PRIESTHOOD * $k['PR'];
         $report .= $t . " magical runes were produced\n";
         $k['M'] += $t;
 
@@ -260,28 +260,31 @@ class Turn extends Command
             $report .= "magical fires razed some buildings from your land. you may want to !cast rain on yourself\n";
         }
 
-        $result = $this->db->query("SELECT fromuser, notes FROM turnnotes WHERE touser = \"" . clean($k['username']) . "\";");
+        $result = $this->__db->executeQuery("SELECT fromuser, notes FROM turnnotes WHERE touser = \"" . clean($k['username']) . "\";")->fetchAll(PDO::FETCH_ASSOC);
 
         if ($result) {
-
-            if ($result->num_rows > 0) {
-                while($notes = $result->fetch_assoc()) {
+            if (count($result) > 0) {
+                foreach($result as $notes)
+                {
                     $report .= $notes['notes'] . "\n";
                 }
             }
         }
 
-        $result = $this->db->query("SELECT item, amountleft FROM items WHERE kingdom = \"" . clean($k['username']) . "\";");
+        $result = $this->__db->executeQuery("SELECT item, amountleft FROM items WHERE kingdom = \"" . clean($k['username']) . "\";")->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($result && $result->num_rows > 0) {
+        if ($result && count($result) > 0) {
             $report .= "your kingdom has the following magical items in its possession:\n";
-            while($notes = $result->fetch_assoc())  $report .=  $notes['item'] . ' with ' . $notes['amountleft'] . ' uses remaining'. "\n";
+            foreach($result as $notes)
+            {
+                $report .=  $notes['item'] . ' with ' . $notes['amountleft'] . ' uses remaining'. "\n";
+            }
         }
 
         $reporttime = time();
         $this->__db->executeQuery("INSERT INTO reports (user, report, timestamp) VALUES (UNHEX('" . bin2hex($k['username']) . "'), UNHEX('" . bin2hex($report) . "'), ".$reporttime.") ON DUPLICATE KEY UPDATE report = UNHEX('" . bin2hex($report) . "'), timestamp = ".$reporttime.";");
         $this->__db->executeQuery("DELETE FROM turnnotes WHERE touser = \"" . clean($k['username']) . "\";");
 
-        $this->save_kingdom($k);
+        $this->__db->saveKingdom($k);
     }
 }

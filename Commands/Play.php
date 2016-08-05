@@ -18,7 +18,7 @@ class Play extends Command
     {
         $u = clean($this->__message->getAuthorName());
 
-        $details = $this->__db->executeQuery('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";');
+        $details = $this->__db->executeQuery('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";')->fetch(PDO::FETCH_ASSOC);;
 
         if ($details['locations'] == "") {
 
@@ -27,7 +27,7 @@ class Play extends Command
         }
 
         if ($details === false) {
-            $alreadynewplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($u) . "\" AND caston = \"" . clean($u) . "\" AND spell = \"(newplayer)\" LIMIT 1;");
+            $alreadynewplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($u) . "\" AND caston = \"" . clean($u) . "\" AND spell = \"(newplayer)\" LIMIT 1;")->fetchAll(PDO::FETCH_ASSOC);;
             if ($alreadynewplayer) {
                 $this->__communicator->sendReply($u, "you've already created a new kingdom this turn. your people grow weary of being raped and murdered and cannot be compelled to form a new kingdom until next turn");
             } else {
@@ -42,7 +42,7 @@ class Play extends Command
                 $this->__db->executeQuery(
                     'INSERT INTO kingdom (username, locations, L, G, I, H, P, S,FA, BT, WO, R, D) VALUES ("' . clean($u) . '", "' . $loc . '", ' . LAND_PER_KINGDOM . ', ' . START_GOLD . ', ' . START_IRON . ', ' . START_HOUSES . ',' . START_POPULATION . ',' . START_SOLDIERS . ',' . START_FARMS . ',' . START_BATTLEMENTS. ', ' . START_WOOD . ', ' . START_STONE . ', ' . START_DAMS . ');'
                 );
-                $details = $this->__db->executeQuery('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";');
+                $details = $this->__db->executeQuery('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";')->fetch(PDO::FETCH_ASSOC);;
                 $this->__communicator->sendBoth($u, "to play, type commands here. check out the play guide for detailed help");
 
                 $this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($u) . "\", \"" . clean($u) . "\", \"(newplayer)\", 1);");

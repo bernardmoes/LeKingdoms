@@ -112,10 +112,10 @@ $discord->on('ready', function ($discord) {
             $bot = new Kingdom($input, $message->channel, $glochannel);
             //		$message->reply('c');
             $username = "";
-            $row = DBCommunicator::getInstance()->executeQuery("select username from discord_player where guid = UNHEX('" . bin2hex('' . $message->author->id) . "');") or print(mysql_error());
+            $row = DBCommunicator::getInstance()->executeQuery("select username from discord_player where guid = UNHEX('" . bin2hex('' . $message->author->id) . "');")->fetch(PDO::FETCH_ASSOC) or print(mysql_error());
             if ($row === FALSE) {
                 DBCommunicator::getInstance()->executeQuery("insert into discord_player (guid, username) values ( UNHEX('" . bin2hex(''.$message->author->id) . "'), UNHEX('" . bin2hex($message->author->username) . "'));") or print(mysql_error());
-                $row = DBCommunicator::getInstance()->executeQuery("select username from discord_player where guid = UNHEX('" . bin2hex(''.$message->author->id) . "');")  or print(mysql_error());
+                $row = DBCommunicator::getInstance()->executeQuery("select username from discord_player where guid = UNHEX('" . bin2hex(''.$message->author->id) . "');")->fetch(PDO::FETCH_ASSOC)  or print(mysql_error());
             }
             if (!array_key_exists('username', $row)) {
                 $message->reply("Not sure who you are <@" . $message->author->id . ">");

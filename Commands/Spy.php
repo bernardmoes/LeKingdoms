@@ -13,18 +13,18 @@ class Spy extends Command
         parent::__construct($message, $kingdom, $communicator);
     }
 
-    function spyNow()
+    function spyNow($loc, $u)
     {
         $loc = clean($loc);
         $u = clean($u);
 
 
 
-        $victim = $this->get_username_at_location($loc);
+        $victim = KingdomHelper::get_username_at_location($loc);
         if ($victim === false) return "cannot spy on " . $loc . " as no kingdom exists there.";
 
-        $v = $this->get_kingdom($victim);
-        $a = $this->get_kingdom($u);
+        $v = $this->__db->getKingdom($victim);
+        $a = $this->__db->getKingdom($u);
 
         if ($v['username'] == $a['username']) return "you cannot spy on yourself. you could always use !stats";
 
@@ -33,7 +33,6 @@ class Spy extends Command
         $ratio =  ($v['IA'] + 1) / ($a['IA'] + 1);
 
         $report = "your spies entered " . $v['username'] . "'s kingdom by night. ";
-
 
         if ($ratio < 0.25) {
             $report .= "their job was ridiculously easy as the enemy had relatively few of its own spies. ";
@@ -53,18 +52,15 @@ class Spy extends Command
             $this->add_turn_note($a['username'], $v['username'], $a['username'] . "'s spys were caught in our kingdom");
             // minimal
         }
-
-
-
         return $report;
     }
 
     function execute()
     {
-        if (count($c) < 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can use your intelligence agencies to !espionage nn:mm or !espionage username other kingdoms");
-        $loc =  $this->resolve_location_from_input($c[1]);
-        if ($loc === false) return $this->__communicator->sendReply($this->__message->getAuthorName(), "cannot spy on " . $c[1] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
-        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->espionage($loc, $user));
+        if (count($this->__message->getContentArgs()) < 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can use your intelligence agencies to !espionage nn:mm or !espionage username other kingdoms");
+        $loc =  KingdomHelper::resolve_location_from_input($this->__message->getContentArgs()[1]);
+        if ($loc === false) return $this->__communicator->sendReply($this->__message->getAuthorName(), "cannot spy on " . $this->__message->getContentArgs()[1] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->spyNow($loc, $this->__message->getAuthorName()));
 
     }
 }

@@ -15,7 +15,7 @@ class Abra extends Command
 
     function execute()
     {
-        if (count($c) != 5) return $this->reply($user,$p, "you mean !abra soldiers weapons horses battlements");
+        if (count($c) != 5) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !abra soldiers weapons horses battlements");
         $k = $this->get_kingdom(clean($user));
 
         $k['S'] = intval($c[1]);

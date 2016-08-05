@@ -48,9 +48,9 @@ class BuyMax extends Trade
     function execute()
     {
         $k = $this->get_kingdom($user);
-        if ($k['TC'] < 1) return $this->reply($user,$p, "you cannot trade until you have at least one trading center");
-        if (count($c) != 2) return $this->reply($user,$p, "try !buymax wood");
+        if ($k['TC'] < 1) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you cannot trade until you have at least one trading center");
+        if (count($c) != 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "try !buymax wood");
 
-        return $this->reply($user,$p, $this->buymax($user, clean($c[1])));
+        return $this->__communicator->sendReply($this->__message->getAuthorName(), $this->buymax($user, clean($c[1])));
     }
 }

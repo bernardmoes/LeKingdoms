@@ -17,9 +17,9 @@ class Stats extends Command
     {
         $n = (count($c) > 1 ? clean($c[1]) : clean($user) );
         $d = $this->get_kingdom($n);
-        if ($d === false && $n == $user) return $this->reply($user,$p, "you don't have a kingdom, what are you poor? maybe try !play");
-        else if ($d === false) return  $this->reply($user,$p, $n . " doesn't have a kingdom. you should invite him to !play");
+        if ($d === false && $n == $user) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you don't have a kingdom, what are you poor? maybe try !play");
+        else if ($d === false) return  $this->__communicator->sendReply($this->__message->getAuthorName(), $n . " doesn't have a kingdom. you should invite him to !play");
 
-        $this->reply($user,$p, $this->print_kingdom($d));
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->print_kingdom($d));
     }
 }

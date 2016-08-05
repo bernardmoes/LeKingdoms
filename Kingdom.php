@@ -1,7 +1,11 @@
 <?php
+ini_set('display_errors', 'On');
+error_reporting(E_ALL);
+
 require_once "DBCommunicator.php";
 require_once "Command.php";
 require_once "Communicators/DiscordCommunicator.php";
+require_once "Helpers/KingdomHelper.php";
 foreach (glob("Commands/*.php") as $filename)
 {
     require_once $filename;
@@ -25,30 +29,23 @@ class Kingdom {
     public $glochannel;
     public $lastturn;
 
-
-    public function random_location() {
-        return rand(0,100) . ":" . rand(0,100);
-    }
-
     /** @var CommandEvaluator */
     private $_commandEvaluator;
     /** @var DBCommunicator */
     private $_db;
-    private $_user;
+    private $_kingdom;
     /** @var Communicator */
     private $_communicator;
     public function __construct(DiscordMessage $input, $channel, $glochannel) {
         $db = DBCommunicator::getInstance();
-        $user = $db->getKingdom($input->getAuthorName());
+        $kingdom = $db->getKingdom($input->getAuthorName());
         $this->_db = $db;
         $this->channel = $channel;
         $this->glochannel = $glochannel;
-        $this->_user = $user;
+        $this->_kingdom = $kingdom;
         $communicator = new DiscordCommunicator($channel, $glochannel);
         $this->_communicator = $communicator;
-        $this->_commandEvaluator = new CommandEvaluator($user, $communicator);
-
-
+        $this->_commandEvaluator = new CommandEvaluator($kingdom, $communicator);
     }
 
 
@@ -181,47 +178,7 @@ class Kingdom {
 
      ***/
 
-    public static $SG = 500; // start gold
-    public static $SI = 20; // start iron
-    public static $SF = 140; // start food
-    public static $SP = 10; // start population
-    public static $SS = 5; // start soldiers
-    public static $SH = 5; // start houses
-    public static $SFA = 2; // start farms
-    public static $SD = 1; // start dams
-    public static $SBT = 10; // starting battlements
-    public static $SR = 10; // start stone
-    public static $SW = 100; // start wood
 
-
-
-    public static $LPK = 250; // land per kingdom
-    public static $CTA = 500; // cost to annex
-    public static $SIZE = 100; // map size
-
-    public static $GPR = 10; // round gold
-    public static $GPB = 10; // round gold per bank
-    public static $FPF = 10; // food per farm
-    public static $FPP = 1; // food consumed per head population
-    public static $WPP = 10; // water consumed per head population
-    public static $IPM = 5; // round iron per mine
-    public static $WPF = 5; // round weapon per factory
-    public static $SRR = 2; // round soldiers per barracks
-    public static $MPP = 5; // magic per preisthood
-    public static $PPH = 4; // people per house
-    public static $PRR = 0.3; // population reproduction rate
-    public static $SPB = 10; // soldiers per barracks
-    public static $IPF = 1; // income per forest
-    public static $FPR = 1; // food per forest
-    public static $HTA = 10; // home turf advantage
-    public static $WPD = 300; // water per dam
-    public static $WDL = 1000; // water dam limit
-    public static $SPQ = 2; // stone per quary
-    public static $HPS = 5; // 5 horses to a stable
-    public static $HRR = 1; // horse reproduction rate
-    public static $TIA = 0.95; // new foodprint of entire kingdom per technical institute
-    public static $WOF = 15; // wood per forest
-    public static $PPLS = 20; // people per landsquare requirement for annexation
 
     public static $buildings;
     public static $buildings_key;
@@ -243,29 +200,6 @@ class Kingdom {
 
     public function buildmax($u, $b) {
         //execute buildmax command
-    }
-
-
-    public function get_username_at_location($location) {
-
-        if (strrpos($location, ":") == false) return false;
-
-        $cloc = explode(":", preg_replace('/[^0-9\:]/m', '', $location));
-        if (count($cloc) != 2) return false;
-        $cloc[0] = intval($cloc[0]);
-        $cloc[1] = intval($cloc[1]);
-
-        $l = $cloc[0] . ":" . $cloc[1];
-
-        // cases:	,xx:yy,
-        //		xx:yy,
-        //		,xx:yy
-        //		xx:yy
-
-        $taken = $this->_db->executeQuery("SELECT username FROM kingdom WHERE locations LIKE \"%," . $l . ",%\" OR locations LIKE \"" . $l . ",%\" OR locations LIKE \"%," . $l . "\"  OR locations = \"" . $l . "\";");
-        if ($taken !== false) return $taken["username"];
-        return false;
-
     }
 
 
@@ -497,7 +431,7 @@ class Kingdom {
         // execute yolo command
     }
 
-    public function processCommand($message) {
+    public function processCommand(DiscordMessage $message) {
         $this->_commandEvaluator->evaluateCommand($message);
     }
 

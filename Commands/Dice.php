@@ -15,12 +15,12 @@ class Dice extends Command
 
     function execute()
     {
-        if (count($c) > 2) return $this->reply($user,$p, "you mean !dice [face count]");
+        if (count($this->__message->getContentArgs()) > 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !dice [face count]");
         $faces = 6;
-        if (count($c) == 2) $faces = abs(intval($c[1]));
+        if (count($this->__message->getContentArgs()) == 2) $faces = abs(intval($this->__message->getContentArgs()[1]));
 
         if ($faces <= 1) $faces = 6;
-        return $this->reply($user,$p, "dice roll: " . (rand(0, $faces - 1) + 1) . " of " . $faces);
+        $this->__communicator->sendReply($this->__message->getAuthorName(), sprintf("dice roll: %s of %s", (rand(0, $faces - 1) + 1), $faces));
 
     }
 }

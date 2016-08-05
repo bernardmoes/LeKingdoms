@@ -26,6 +26,6 @@ class Items extends Command
             $report .= "your kingdom possesses no magical items at this time.";
 
         }
-        return $this->reply($user,$p, $report);
+        return $this->__communicator->sendReply($this->__message->getAuthorName(), $report);
     }
 }

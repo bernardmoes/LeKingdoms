@@ -15,7 +15,7 @@ class Players extends Command
 
     function execute()
     {
-        $result = $this->db->query("SELECT username FROM kingdom WHERE locations <> \"\";");
+        $result = $this->__db->executeQuery("SELECT username FROM kingdom WHERE locations <> \"\";");
 
         $kingdoms = array();
         if ($result->num_rows > 0) {
@@ -23,7 +23,8 @@ class Players extends Command
                 $kingdoms[] = $kingdom['username'] ;
             }
         }
-        return $this->reply($user,$p, "currently active kingdoms: " . implode(", ", $kingdoms));
 
+
+        return $this->__communicator->sendReply($this->__message->getAuthorName(), sprintf("currently active kingdoms: %s", implode(", ", $kingdoms)));
     }
 }

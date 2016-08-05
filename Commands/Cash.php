@@ -15,9 +15,6 @@ class Cash extends Command
 
     function execute()
     {
-        $k = $this->get_kingdom($user);
-        if ($k === false) return $this->reply($user,$p, "you don't own a kingdom. try !play");
-        return $this->reply($user,$p, "you have " . $k['G'] . " gc in your coffers");
-
+        return $this->__communicator->sendReply($this->__message->getAuthorName(), sprintf("you have %s gc in your coffers", $this->__kingdom['G']));
     }
 }

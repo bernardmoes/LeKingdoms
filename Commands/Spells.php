@@ -19,7 +19,7 @@ class Spells extends Command
         foreach(self::$spells as $s => $a) {
             $report .= $s . " costs " . $a['r'] . " runes and lasts " . $a['l'] . " turns and " . $a['d'] . "\n";
         }
-        return $this->reply($user,$p, $report);
+        return $this->__communicator->sendReply($this->__message->getAuthorName(), $report);
 
     }
 }

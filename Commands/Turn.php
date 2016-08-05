@@ -32,7 +32,7 @@ class Turn extends Command
 
     public function turn_kingdom($k) {
 
-        $this->q('DELETE FROM items WHERE amountleft <= 0 AND kingdom = "' . clean($k['username']) . '";');
+        $this->__db->executeQuery('DELETE FROM items WHERE amountleft <= 0 AND kingdom = "' . clean($k['username']) . '";');
 
         $report = "your kingdom has been updated! here's what happened in the last round:\n";
 
@@ -279,8 +279,8 @@ class Turn extends Command
         }
 
         $reporttime = time();
-        $this->q("INSERT INTO reports (user, report, timestamp) VALUES (UNHEX('" . bin2hex($k['username']) . "'), UNHEX('" . bin2hex($report) . "'), ".$reporttime.") ON DUPLICATE KEY UPDATE report = UNHEX('" . bin2hex($report) . "'), timestamp = ".$reporttime.";");
-        $this->q("DELETE FROM turnnotes WHERE touser = \"" . clean($k['username']) . "\";");
+        $this->__db->executeQuery("INSERT INTO reports (user, report, timestamp) VALUES (UNHEX('" . bin2hex($k['username']) . "'), UNHEX('" . bin2hex($report) . "'), ".$reporttime.") ON DUPLICATE KEY UPDATE report = UNHEX('" . bin2hex($report) . "'), timestamp = ".$reporttime.";");
+        $this->__db->executeQuery("DELETE FROM turnnotes WHERE touser = \"" . clean($k['username']) . "\";");
 
         $this->save_kingdom($k);
     }

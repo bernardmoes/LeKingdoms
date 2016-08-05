@@ -90,12 +90,12 @@ class Attack extends Command
         $d = $this->get_kingdom($player);
 
 
-        $protectedplayer = $this->q("SELECT * FROM spells WHERE castby = \"" . clean($player) . "\" AND caston = \"" . clean($player) . "\" AND spell = \"protection\" LIMIT 1;");
+        $protectedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($player) . "\" AND caston = \"" . clean($player) . "\" AND spell = \"protection\" LIMIT 1;");
 
         if ($protectedplayer !== false) return "attack failed, " . $player . " is magically protected for " . $protectedplayer['duration'] . " more turns.";
 
 
-        $protectedplayer = $this->q("SELECT * FROM spells WHERE caston = \"" . clean($attacker) . "\" AND spell = \"protection\" LIMIT 1;");
+        $protectedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE caston = \"" . clean($attacker) . "\" AND spell = \"protection\" LIMIT 1;");
         if ($protectedplayer !== false) return "you cannot attack other kingdoms while under a shield";
 
 
@@ -107,10 +107,10 @@ class Attack extends Command
 
 
 
-        $alreadyattacked = $this->q("SELECT * FROM spells WHERE castby = \"" . clean($a['username']) . "\" AND caston = \"" . clean($d['username']) . "\" AND spell = \"(attacked)\" LIMIT 1;");
+        $alreadyattacked = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($a['username']) . "\" AND caston = \"" . clean($d['username']) . "\" AND spell = \"(attacked)\" LIMIT 1;");
         if ($alreadyattacked) return "you've already attacked " . $d['username'] . " this turn. your men are resting and cannot be compelled to attack again until next turn";
 
-        $wardancedplayer = $this->q("SELECT * FROM spells WHERE caston = \"" . clean($player) . "\" AND spell = \"wardance\";");
+        $wardancedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE caston = \"" . clean($player) . "\" AND spell = \"wardance\";");
 
 
 
@@ -239,7 +239,7 @@ class Attack extends Command
 
         }
 
-        $this->q("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($a['username']) . "\", \"" . clean($d['username']) . "\", \"(attacked)\", 1);");
+        $this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($a['username']) . "\", \"" . clean($d['username']) . "\", \"(attacked)\", 1);");
 
 
         return $report;
@@ -248,23 +248,23 @@ class Attack extends Command
 
     function execute()
     {
-        if (count($c) == 1) return $this->reply($user,$p, "to attack another kingdom use !attack nn:mm or !attack username");
+        if (count($c) == 1) return $this->__communicator->sendReply($this->__message->getAuthorName(), "to attack another kingdom use !attack nn:mm or !attack username");
         $loc = $c[1];
         if (strrpos($loc, ":") !== false) {
             // location
             $player = $this->get_username_at_location($loc);
-            if (!$player) return $this->reply($user,$p, $loc . " is empty land. cannot attack it. maybe you could !annex instead?");
+            if (!$player) return $this->__communicator->sendReply($this->__message->getAuthorName(), $loc . " is empty land. cannot attack it. maybe you could !annex instead?");
         } else {
             $player = $this->get_kingdom($loc);
-            if ($player === false) return $this->reply($user,$p, $loc . " does not have a kingdom!");
+            if ($player === false) return $this->__communicator->sendReply($this->__message->getAuthorName(), $loc . " does not have a kingdom!");
             if (strrpos($player['locations'], ",") !== false) {
                 $loc = explode(",",$player['locations']);
                 $loc = $loc[0];
             } else $loc = $player['locations'];
-            if ($loc == "") return $this->reply($user,$p,"that kingdom is already in ruins, has no lands!");
+            if ($loc == "") return $this->__communicator->sendReply($this->__message->getAuthorName(),"that kingdom is already in ruins, has no lands!");
 
         }
 
-        $this->reply($user,$p, $this->attack($loc, $user));
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->attack($loc, $user));
     }
 }

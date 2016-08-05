@@ -70,14 +70,14 @@ class Trade extends Command
     {
         if ($c[0] != 'trade') array_unshift($c, 'trade');
         $k = $this->get_kingdom($user);
-        if ($k['TC'] < 1) return $this->reply($user,$p, "you cannot trade until you have at least one trading center");
-        if (count($c) < 4) return $this->reply($user,$p, "specify an item to trade using like so: !trade sell 10 wood. you can buy and sell food, water, wood, soldiers and stone.");
-        if (!($c[1] == 'buy' || $c[1] == 'sell')) return $this->reply($user,$p, "you can't " . $c[1] . " you can only buy or sell. try for example: !trade buy 2 food");
+        if ($k['TC'] < 1) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you cannot trade until you have at least one trading center");
+        if (count($c) < 4) return $this->__communicator->sendReply($this->__message->getAuthorName(), "specify an item to trade using like so: !trade sell 10 wood. you can buy and sell food, water, wood, soldiers and stone.");
+        if (!($c[1] == 'buy' || $c[1] == 'sell')) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can't " . $c[1] . " you can only buy or sell. try for example: !trade buy 2 food");
 
         if (intval($c[2]) . "" == $c[2]) {
-            $this->reply($user,$p, $this->trade($user, $c[1], $c[2], $c[3]));
+            $this->__communicator->sendReply($this->__message->getAuthorName(), $this->trade($user, $c[1], $c[2], $c[3]));
         } else {
-            $this->reply($user,$p, $this->trade($user, $c[1], $c[3], $c[2]));
+            $this->__communicator->sendReply($this->__message->getAuthorName(), $this->trade($user, $c[1], $c[3], $c[2]));
 
         }
     }

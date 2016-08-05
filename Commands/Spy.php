@@ -61,10 +61,10 @@ class Spy extends Command
 
     function execute()
     {
-        if (count($c) < 2) return $this->reply($user,$p, "you can use your intelligence agencies to !espionage nn:mm or !espionage username other kingdoms");
+        if (count($c) < 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can use your intelligence agencies to !espionage nn:mm or !espionage username other kingdoms");
         $loc =  $this->resolve_location_from_input($c[1]);
-        if ($loc === false) return $this->reply($user,$p, "cannot spy on " . $c[1] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
-        $this->reply($user,$p, $this->espionage($loc, $user));
+        if ($loc === false) return $this->__communicator->sendReply($this->__message->getAuthorName(), "cannot spy on " . $c[1] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->espionage($loc, $user));
 
     }
 }

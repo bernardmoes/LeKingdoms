@@ -23,6 +23,6 @@ class Prices extends Command
         foreach($buyprices as $i => $v) {
             $report .= $i . ": " . $v . ($sellprices[$i] == $v ? " gc\n" : " (sell: " . $sellprices[$i] . ") gc\n");
         }
-        return $this->reply($user,$p, $report);
+        return $this->__communicator->sendReply($this->__message->getAuthorName(), $report);
     }
 }

@@ -15,11 +15,11 @@ class UnProtect extends Command
 
     function execute()
     {
-        if (count($c) != 2) return $this->reply($user,$p, "you mean !unprotect username");
+        if (count($c) != 2) return$this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !unprotect username");
         $k = $this->get_kingdom(clean($c[1]));
-        if (!$k) return $this->reply($user,$p,"user " . $c[1] . " does not have a kingdom");
+        if (!$k) return$this->__communicator->sendReply($this->__message->getAuthorName(),"user " . $c[1] . " does not have a kingdom");
 
-        $this->q("DELETE FROM spells WHERE caston = \"" . clean($c[1]) . "\", AND spell = \"protection\" LIMIT 1;");
+        $this->__db->executeQuery("DELETE FROM spells WHERE caston = \"" . clean($c[1]) . "\", AND spell = \"protection\" LIMIT 1;");
 
         return $this->room( "sythe removed protection from " . $c[1]);
     }

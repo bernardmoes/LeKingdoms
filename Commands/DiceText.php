@@ -15,10 +15,10 @@ class DiceText extends Command
 
     function execute()
     {
-        if (count($c) < 2) return $this->reply($user,$p, "you mean !dicetext option1,option2,option3");
+        if (count($this->__message->getContentArgs()) < 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !dicetext option1,option2,option3");
 
-        $faces = count($c);
-
+        $faces = count($this->__message->getContentArgs());
+        $c = $this->__message->getContentArgs();
         unset($c[0]);
 
         $text = preg_replace('/[^a-zA-Z0-9: .\-,]/m', '', implode(" ", $c));
@@ -26,8 +26,6 @@ class DiceText extends Command
 
         $faces = count($options);
 
-        return $this->reply($user,$p, "-> " . $options[(rand(0, $faces -1))]);
-
-
+        $this->__communicator->sendReply($this->__message->getAuthorName(), sprintf("-> %s", $options[(rand(0, $faces -1))]));
     }
 }

@@ -15,15 +15,15 @@ class Report extends Command
 
     function execute()
     {
-        $r = $this->q("SELECT value FROM worldvars WHERE name='ageof';");
+        $r = $this->__db->executeQuery("SELECT value FROM worldvars WHERE name='ageof';");
         $ageof = $r['value'];
-        $r = $this->q("SELECT value FROM worldvars WHERE name='turns';");
+        $r = $this->__db->executeQuery("SELECT value FROM worldvars WHERE name='turns';");
         $turn = $r['value'];
         $this->lastturn = $turn;
-        $report = $this->q("SELECT report, timestamp FROM reports WHERE user = UNHEX('" . bin2hex($user) . "');");
-//			if (!$report)  $this->reply($user,$p, "no reports yet. wait for the world to turn");
+        $report = $this->__db->executeQuery("SELECT report, timestamp FROM reports WHERE user = UNHEX('" . bin2hex($user) . "');");
+//			if (!$report)  $this->__communicator->sendReply($this->__message->getAuthorName(), "no reports yet. wait for the world to turn");
         $timepassed = time() - intval($report['timestamp']);
         $timepassed =  $timepassed / 3600;
-        return $this->reply($user,$p, "You are playing Kingdoms, the age of " . $ageof . ", the world is " . $turn . " turns old. Your last report was generated " . (  intval($report['timestamp']) == 0 ? '... never as you are yet to play through a turn.' : round($timepassed * 10)/10 . " hours ago:\n" . $report['report']));
+        return $this->__communicator->sendReply($this->__message->getAuthorName(), "You are playing Kingdoms, the age of " . $ageof . ", the world is " . $turn . " turns old. Your last report was generated " . (  intval($report['timestamp']) == 0 ? '... never as you are yet to play through a turn.' : round($timepassed * 10)/10 . " hours ago:\n" . $report['report']));
     }
 }

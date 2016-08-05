@@ -15,10 +15,10 @@ class Godeye extends Command
 
     function execute()
     {
-        if (count($c) != 2) return $this->reply($user,$p, "you mean !godeye username");
+        if (count($c) != 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !godeye username");
         $k = $this->get_kingdom(clean($c[1]));
-        if (!$k) return $this->reply($user,$p,"user " . $c[1] . " does not have a kingdom");
+        if (!$k) return $this->__communicator->sendReply($this->__message->getAuthorName(),"user " . $c[1] . " does not have a kingdom");
 
-        return $this->reply($user,$p,$this->print_kingdom(  $k  ));
+        return $this->__communicator->sendReply($this->__message->getAuthorName(),$this->print_kingdom(  $k  ));
     }
 }

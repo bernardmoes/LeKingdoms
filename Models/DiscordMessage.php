@@ -18,11 +18,13 @@ class DiscordMessage
     private $_isAdmin;
     private $_isAuthorizedBot;
     private $_contentArgs;
+    private $_shouldProcess;
 
     public function __construct($message)
     {
-        $content = strtolower(str_replace("\r", "", str_replace("\n", "", str_replace("!", "", $message->content))));
-
+        $content = strtolower(str_replace("\r", "", str_replace("\n", "", $message->content)));
+        $this->_shouldProcess = (strlen($content) > 1 && $content[0] == '!');
+        $content = str_replace("!", "", $content);
         $this->_ID = $message->id;
         $this->_channelID = $message->channel_id;
         $this->_content = $content;
@@ -79,7 +81,7 @@ class DiscordMessage
 
     public function shouldProcess()
     {
-        return strlen($this->_content) > 0;
+        return $this->_shouldProcess;
     }
 
     public function isAdmin()
@@ -89,7 +91,7 @@ class DiscordMessage
 
     public function isAuthorizedBot()
     {
-        return $this->isAuthorizedBot();
+        return $this->_isAuthorizedBot;
     }
 
 }

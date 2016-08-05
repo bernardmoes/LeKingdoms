@@ -27,11 +27,11 @@ class CommandEvaluator
     private $_message;
     /** @var Command */
     private $_command;
-    private $_user;
+    private $_kingdom;
     private $_communicator;
-    public function __construct($user, $communicator)
+    public function __construct($kingdom, $communicator)
     {
-        $this->_user = $user;
+        $this->_kingdom = $kingdom;
         $this->_communicator = $communicator;
     }
 
@@ -46,6 +46,7 @@ class CommandEvaluator
         }
 
         $this->executeCommand();
+        return;
     }
 
     public function executeCommand()
@@ -56,6 +57,16 @@ class CommandEvaluator
         }
     }
 
+    public function assertHasKingdom()
+    {
+        if ($this->_kingdom === false)
+        {
+            $this->_communicator->sendReply($this->_message->getAuthorName(), "you don't own a kingdom. try !play");
+            return false;
+        }
+        return true;
+    }
+
     public function unknownCommand()
     {
 
@@ -63,132 +74,198 @@ class CommandEvaluator
 
     public function play()
     {
-        echo "play!";
+        $this->_command = new Play($this->_message, $this->_kingdom, $this->_communicator);
     }
 
     public function help()
     {
-        $this->_command = new Help($this->_message, $this->_user, $this->_communicator);
+        $this->_command = new Help($this->_message, $this->_kingdom, $this->_communicator);
     }
 
     public function cash()
     {
-
+        if($this->assertHasKingdom())
+        {
+            $this->_command = new Cash($this->_message, $this->_kingdom, $this->_communicator);
+        }
     }
 
     public function space()
     {
-
+        if($this->assertHasKingdom())
+        {
+            $this->_command = new Space($this->_message, $this->_kingdom, $this->_communicator);
+        }
     }
 
     public function players()
     {
-
+        $this->_command = new Players($this->_message, $this->_kingdom, $this->_communicator);
     }
 
     public function steal()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function spy()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function spells()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function items()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function useCmd()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function cast()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function trade()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function buymax()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function sellall()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function gift()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function stats()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function attack()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function build()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function buildmax()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function raze()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function buildings()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function annex()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function obliterate()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function autoannex()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function yolo()
     {
+        if($this->assertHasKingdom())
+        {
 
+        }
     }
 
     public function turn()
     {
-        if($this->_message->isAdmin() || $this->_message->isAuthorizedBot())
+        if(($this->_message->isAdmin() || $this->_message->isAuthorizedBot()))
         {
 
         }
@@ -204,7 +281,7 @@ class CommandEvaluator
 
     public function selfdestruct()
     {
-
+        $this->_command = new SelfDestruct($this->_message, $this->_kingdom, $this->_communicator);
     }
 
     public function fakeplay()
@@ -233,7 +310,7 @@ class CommandEvaluator
 
     public function bernanke()
     {
-        if($this->_message->isAdmin())
+        if($this->_message->isAdmin() && $this->assertHasKingdom())
         {
 
         }
@@ -241,7 +318,7 @@ class CommandEvaluator
 
     public function greenspan()
     {
-        if($this->_message->isAdmin())
+        if($this->_message->isAdmin() && $this->assertHasKingdom())
         {
 
         }
@@ -249,7 +326,7 @@ class CommandEvaluator
 
     public function obama()
     {
-        if($this->_message->isAdmin())
+        if($this->_message->isAdmin() && $this->assertHasKingdom())
         {
 
         }
@@ -281,7 +358,7 @@ class CommandEvaluator
 
     public function abra()
     {
-        if($this->_message->isAdmin())
+        if($this->_message->isAdmin() && $this->assertHasKingdom())
         {
 
         }
@@ -297,22 +374,22 @@ class CommandEvaluator
 
     public function dice()
     {
-
+        $this->_command = new Dice($this->_message, $this->_kingdom, $this->_communicator);
     }
 
     public function dicetext()
     {
-
+        $this->_command = new DiceText($this->_message, $this->_kingdom, $this->_communicator);
     }
 
     public function checkturn()
     {
-
+        $this->_command = new CheckTurn($this->_message, $this->_kingdom, $this->_communicator);
     }
 
     public function report()
     {
-
+        $this->_command = new Report($this->_message, $this->_kingdom, $this->_communicator);
     }
 
 

@@ -32,7 +32,7 @@ class Yolo extends Command
 
         if ($newpeople + $d['P'] > $popcap) return "your people cannot breed because you lack housing.";
 
-        //$alreadyyolo = $this->q("SELECT * FROM spells WHERE castby = \"" . clean($u) . "\" AND caston = \"" . clean($u) . "\" AND spell = \"(yolo)\" LIMIT 1;");
+        //$alreadyyolo = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($u) . "\" AND caston = \"" . clean($u) . "\" AND spell = \"(yolo)\" LIMIT 1;");
         //if ($alreadynewplayer) {
         //	 return "you've yolo'ed once this turn. your people are orgyed out and cannot be compelled to breed further until next turn";
         //} else {
@@ -44,7 +44,7 @@ class Yolo extends Command
         $report = "your people throw a massive feast, consuming " . $wineneeded . " flagons of wine and " . $foodneeded . " servings of food. after eating they retire to the orgarium for dirty cuddles. " . $newpeople . " new people were subsequently added to your kingdom's population.";
 
         $this->save_kingdom($d);
-        //	$this->q("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($u) . "\", \"" . clean($u) . "\", \"(yolo)\", 1);");
+        //	$this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($u) . "\", \"" . clean($u) . "\", \"(yolo)\", 1);");
 
         return $report;
     }

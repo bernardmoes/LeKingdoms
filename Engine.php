@@ -94,7 +94,6 @@ $discord->on('ready', function ($discord) {
     $discord->on('message', function ($message, $discord) {
         $input = new DiscordMessage($message);
         if ($input->shouldProcess()) {
-
             $guild = $discord->guilds->first();
             $glochannel = null;
             foreach ($guild->channels as $c) {

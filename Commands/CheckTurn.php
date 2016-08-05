@@ -15,16 +15,15 @@ class CheckTurn extends Command
 
     function execute()
     {
-        $r = $this->q("SELECT value FROM worldvars WHERE name='turns';");
+        $r = $this->__db->executeQuery("SELECT value FROM worldvars WHERE name='turns';");
         $turn = $r['value'];
-        $r = $this->q("SELECT value FROM worldvars WHERE name='lastturn';");
+        $r = $this->__db->executeQuery("SELECT value FROM worldvars WHERE name='lastturn';");
         $lastturntime = intval($r['value']);
-        $r = $this->q("SELECT value FROM worldvars WHERE name='turnfreq';");
+        $r = $this->__db->executeQuery("SELECT value FROM worldvars WHERE name='turnfreq';");
         $turnfreq = intval($r['value']);
-        $this->reply($user,$p, "<C>" . ($turnfreq - (time() - $lastturntime)));
+        $this->__communicator->sendReply($this->__message->getAuthorName(), sprintf("<C>%s", ($turnfreq - (time() - $lastturntime))));
         if ($this->lastturn <> $turn) {
-            $this->reply($user,$p, "the world has turned! here's your report:");
-            return $this->process_command("report", $user, $type);
+            $this->__communicator->sendReply($this->__message->getAuthorName(), "the world has turned! Go ahead and post !report");
         }
     }
 }

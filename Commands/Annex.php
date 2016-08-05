@@ -76,7 +76,7 @@ class Annex extends Command
         $gold = $d['G'] - self::$CTA;
         $land = $d['L'] + self::$LPK;
         $locations = $d['locations'] . "," . $cloc[0] . ":" . $cloc[1];
-        $this->q("UPDATE kingdom SET G=" . intval($gold) . ", L=" . intval($land) . ", locations=\"" . $locations . "\" WHERE username =\"" . clean($u) . "\" LIMIT 1;");
+        $this->__db->executeQuery("UPDATE kingdom SET G=" . intval($gold) . ", L=" . intval($land) . ", locations=\"" . $locations . "\" WHERE username =\"" . clean($u) . "\" LIMIT 1;");
 
         return "land at " . $cloc[0] . ":" . $cloc[1] .  " annexed!";
     }
@@ -84,7 +84,7 @@ class Annex extends Command
     function execute()
     {
         if (count($c) <= 1) {
-            return $this->reply($user,$p, "you can annex some unused surrounding land by !annex nn:mm, where nn:mm is the location of the land. this costs " . self::$CTA . " gc for surveying.");
+            return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can annex some unused surrounding land by !annex nn:mm, where nn:mm is the location of the land. this costs " . self::$CTA . " gc for surveying.");
         } else {
             $location =  preg_replace('/[^0-9:]+/sm', '', $c[1]);
             return $this->reply($user, $p, $this->annex(clean($user), $location));

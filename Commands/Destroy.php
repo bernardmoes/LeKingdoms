@@ -15,7 +15,7 @@ class Destroy extends Command
 
     function execute()
     {
-        $this->q('DELETE FROM kingdom WHERE username = "' . clean($c[1]) . '" LIMIT 1;');
-        $this->reply($user,$p, "kingdom of " . clean($c[1]) . " has been razed to the ground!");
+        $this->__db->executeQuery('DELETE FROM kingdom WHERE username = "' . clean($c[1]) . '" LIMIT 1;');
+        $this->__communicator->sendReply($this->__message->getAuthorName(), "kingdom of " . clean($c[1]) . " has been razed to the ground!");
     }
 }

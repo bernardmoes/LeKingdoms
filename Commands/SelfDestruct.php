@@ -15,7 +15,7 @@ class SelfDestruct extends Command
 
     function execute()
     {
-        $this->q('DELETE FROM kingdom WHERE username = "' . clean($user) . '" LIMIT 1;');
-        $this->reply($user,$p, "kingdom of " . $user . " ceased to exist. to start over !play");
+        $this->__db->executeQuery('DELETE FROM kingdom WHERE username = "' . clean($this->__message->getAuthorName()) . '" LIMIT 1;');
+        $this->__communicator->sendReply($this->__message->getAuthorName(), sprintf("kingdom of %s ceased to exist. to start over !play", $this->__message->getAuthorName()));
     }
 }

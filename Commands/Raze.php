@@ -52,7 +52,7 @@ class Raze extends Command
     function execute()
     {
         if (count($c) <= 1) {
-            $this->reply($user,$p, "you can !raze [building type] [amount] to free up some land. for a list of buildings try !buildings");
+            $this->__communicator->sendReply($this->__message->getAuthorName(), "you can !raze [building type] [amount] to free up some land. for a list of buildings try !buildings");
         } else {
             $amount = 1;
             $buildingtype = $c[1];
@@ -75,7 +75,7 @@ class Raze extends Command
             $building = (isset(self::$buildings_lookup[$buildingtype]) ? self::$buildings_lookup[$buildingtype] : false);
 
 
-            $this->reply($user,$p, ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->raze($user, $building, $amount)));
+            $this->__communicator->sendReply($this->__message->getAuthorName(), ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->raze($user, $building, $amount)));
         }
 
 

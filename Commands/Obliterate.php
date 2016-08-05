@@ -64,7 +64,7 @@ class Obliterate extends Command
     function execute()
     {
         if (count($c) <= 1) {
-            return $this->reply($user,$p, "you can obliterate some of your lands like so !obliterate nn:mm");
+            return$this->__communicator->sendReply($this->__message->getAuthorName(), "you can obliterate some of your lands like so !obliterate nn:mm");
         } else {
             $location =  preg_replace('/[^0-9:]+/sm', '', $c[1]);
             return $this->reply($user, $p, $this->obliterate(clean($user), $location));

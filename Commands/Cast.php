@@ -25,10 +25,10 @@ class Cast extends Command
 
 
         if ($victim != $attacker) {
-            $protectedplayer = $this->q("SELECT * FROM spells WHERE castby = \"" . clean($victim) . "\" AND caston = \"" . clean($victim) . "\" AND spell = \"protection\" LIMIT 1;");
+            $protectedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($victim) . "\" AND caston = \"" . clean($victim) . "\" AND spell = \"protection\" LIMIT 1;");
             if ($protectedplayer !== false) return "spell was unsuccessful, as " . $victim. " is magically protected for " . $protectedplayer['duration'] . " more turns.";
 
-            $protectedplayer = $this->q("SELECT * FROM spells WHERE caston = \"" . clean($attacker) . "\" AND spell = \"protection\" LIMIT 1;");
+            $protectedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE caston = \"" . clean($attacker) . "\" AND spell = \"protection\" LIMIT 1;");
             if ($protectedplayer !== false) return "you cannot cast spells on other kingdoms while under a shield";
 
 
@@ -44,10 +44,10 @@ class Cast extends Command
         if ($spell == 'protection' && $victim != $attacker) return "you can only cast protection on yourself";
 
 
-        $r = $this->q("SELECT * FROM spells WHERE castby = \"" . clean($attacker) . "\" AND caston = \"" . clean($victim) . "\" AND spell = \"" . clean($spell) . "\" LIMIT 1;");
+        $r = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($attacker) . "\" AND caston = \"" . clean($victim) . "\" AND spell = \"" . clean($spell) . "\" LIMIT 1;");
         if ($r !== false) return "you've already cast this spell on " . $victim . " for this turn, please wait until the spell runs out before re-casting it.";
 
-        $this->q("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($attacker) . "\", \"" . clean($victim) . "\", \"" . clean($spell) . "\", " . intval($s['l']) . ");");
+        $this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($attacker) . "\", \"" . clean($victim) . "\", \"" . clean($spell) . "\", " . intval($s['l']) . ");");
 
 
         $a['M'] -= $s['r'];
@@ -59,13 +59,13 @@ class Cast extends Command
 
     function execute()
     {
-        if (count($c) < 3) return $this->reply($user,$p, "you can cast a spell like so: !cast fire nn:mm, or !cast fire username. for a list of spells try !spells");
+        if (count($c) < 3) return$this->__communicator->sendReply($this->__message->getAuthorName(), "you can cast a spell like so: !cast fire nn:mm, or !cast fire username. for a list of spells try !spells");
         $loc =  $this->resolve_location_from_input($c[2]);
-        if ($loc === false) return $this->reply($user,$p, "cannot cast a spell on " . $c[2] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
+        if ($loc === false) return$this->__communicator->sendReply($this->__message->getAuthorName(), "cannot cast a spell on " . $c[2] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
         $c[1] = clean($c[1]);
         $c[2] = clean($c[2]);
-        if (!isset(self::$spells[$c[1]])) return $this->reply($user,$p, "spell " . $c[1] . " is not a valid spell. try !spells for a list");
-        $this->reply($user,$p, $this->cast($c[1], $c[2], $user));
+        if (!isset(self::$spells[$c[1]])) return$this->__communicator->sendReply($this->__message->getAuthorName(), "spell " . $c[1] . " is not a valid spell. try !spells for a list");
+       $this->__communicator->sendReply($this->__message->getAuthorName(), $this->cast($c[1], $c[2], $user));
     }
 
 

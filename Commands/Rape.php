@@ -15,7 +15,7 @@ class Rape extends Command
 
     function execute()
     {
-        if (count($c) != 2) return 	$this->reply($user,$p, "you mean !rape fendle?");
+        if (count($c) != 2) return 	$this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !rape fendle?");
 
         $k = $this->get_kingdom(clean($c[1]));
         $lostsold = $k['S'];

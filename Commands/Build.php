@@ -69,7 +69,7 @@ class Build extends Command
         $rep = implode(", ", $report);
         $built = $d[$b] + $a;
 
-        //$this->q("UPDATE kingdom SET WO=" . intval($woodleft) . ", R=" . intval($rockleft) . ", I=" . intval($ironleft) . ", G=" . intval($goldleft) . ", L=" . intval($landleft) . ", " . clean($b) . "=" . clean($built) . " WHERE username = \"" . clean($u) . "\" LIMIT 1;");
+        //$this->__db->executeQuery(("UPDATE kingdom SET WO=" . intval($woodleft) . ", R=" . intval($rockleft) . ", I=" . intval($ironleft) . ", G=" . intval($goldleft) . ", L=" . intval($landleft) . ", " . clean($b) . "=" . clean($built) . " WHERE username = \"" . clean($u) . "\" LIMIT 1;");
 
         $d['G'] = $goldleft;
         $d['L'] = $landleft;
@@ -86,7 +86,7 @@ class Build extends Command
     function execute()
     {
         if (count($c) <= 1) {
-            $this->reply($user,$p, "try !build [building type] [amount]. for a list of buildings try !buildings");
+           $this->__communicator->sendReply($this->__message->getAuthorName(), "try !build [building type] [amount]. for a list of buildings try !buildings");
         } else {
             $amount = 1;
             $buildingtype = $c[1];
@@ -116,7 +116,7 @@ class Build extends Command
             $building = (isset(self::$buildings_lookup[$buildingtype]) ? self::$buildings_lookup[$buildingtype] : false);
 
 
-            $this->reply($user,$p, ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->build($user, $building, $amount)));
+           $this->__communicator->sendReply($this->__message->getAuthorName(), ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->build($user, $building, $amount)));
         }
     }
 }
@@ -191,7 +191,7 @@ class BuildMax extends Command
     function execute()
     {
         if (count($c) <= 1) {
-            $this->reply($user,$p, "try !buildmax [building type]. for a list of buildings try !buildings");
+           $this->__communicator->sendReply($this->__message->getAuthorName(), "try !buildmax [building type]. for a list of buildings try !buildings");
         } else {
             unset($c[0]);
             $buildingtype = implode(" ", $c);
@@ -207,7 +207,7 @@ class BuildMax extends Command
 
             $building = (isset(self::$buildings_lookup[$buildingtype]) ? self::$buildings_lookup[$buildingtype] : false);
 
-            $this->reply($user,$p, ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->buildmax($user, $building)));
+           $this->__communicator->sendReply($this->__message->getAuthorName(), ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->buildmax($user, $building)));
         }
     }
 }

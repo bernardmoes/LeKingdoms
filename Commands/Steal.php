@@ -28,7 +28,7 @@ class Steal extends Command
 
         if ($a['T'] == 0) return "you cannot thieve until you have at least one thieves den. try !build thieves den";
 
-        $alreadythieved = $this->q("SELECT * FROM spells WHERE castby = \"" . clean($a['username']) . "\" AND caston = \"" . clean($v['username']) . "\" AND spell = \"(thieved)\" LIMIT 1;");
+        $alreadythieved = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($a['username']) . "\" AND caston = \"" . clean($v['username']) . "\" AND spell = \"(thieved)\" LIMIT 1;");
         if ($alreadythieved) return "you've already thieved " . $v['username'] . " this turn. your thieves are enjoying their spoils and cannot be persuaded to thieve this kingdom again until next turn";
 
         $ratio =  ($v['T']*1.2 + 1) / ($a['T'] + 1);
@@ -63,16 +63,16 @@ class Steal extends Command
         $this->save_kingdom($v);
         $this->save_kingdom($a);
 
-        $this->q("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($a['username']) . "\", \"" . clean($v['username']) . "\", \"(thieved)\", 1);");
+        $this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($a['username']) . "\", \"" . clean($v['username']) . "\", \"(thieved)\", 1);");
 
         return $report;
     }
 
     function execute()
     {
-        if (count($c) < 2) return $this->reply($user,$p, "you can use your thieves dens to !thieve nn:mm or !thieve username other kingdoms");
+        if (count($c) < 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can use your thieves dens to !thieve nn:mm or !thieve username other kingdoms");
         $loc =  $this->resolve_location_from_input($c[1]);
-        if ($loc === false) return $this->reply($user,$p, "cannot thieve from " . $c[1] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
-        $this->reply($user,$p, $this->thieve($loc, $user));
+        if ($loc === false) return $this->__communicator->sendReply($this->__message->getAuthorName(), "cannot thieve from " . $c[1] . (strrpos($loc, ":") === false ? ", user does not have a kingdom" : " there is no kingdom there."));
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->thieve($loc, $user));
     }
 }

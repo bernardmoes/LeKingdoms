@@ -13,56 +13,45 @@ class Play extends Command
         parent::__construct($message, $kingdom, $communicator);
     }
 
-    public function makeNewPlayer($u) {
-        $u = clean($u);
-
-        $details = $this->q('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";');
-
-        if ($details['locations'] == "") {
-
-            $this->q('DELETE FROM kingdom WHERE username = "' . clean($u) . '";');
-            //$this->q('DELETE FROM spells WHERE castby = "' . clean($u) . '" OR caston = "' . clean($u) . '";');
-            $details = false;
-        }
-        if ($details === false) {
-
-
-            $alreadynewplayer = $this->q("SELECT * FROM spells WHERE castby = \"" . clean($u) . "\" AND caston = \"" . clean($u) . "\" AND spell = \"(newplayer)\" LIMIT 1;");
-            if ($alreadynewplayer) {
-                return "you've already created a new kingdom this turn. your people grow weary of being raped and murdered and cannot be compelled to form a new kingdom until next turn";
-            } else {
-
-
-                $this->q('DELETE FROM spells WHERE castby = "' . clean($u) . '" OR caston = "' . clean($u) . '";');
-                $this->q('DELETE FROM items WHERE kingdom = "' . clean($u) );
-                $this->q('DELETE FROM turnnotes WHERE fromuser = "' . clean($u) . '" OR touser = "' . clean($u) . '";');
-
-                $loc = $this->random_location();
-                while ($this->get_username_at_location($loc)) $loc = $this->random_location();
-
-                $this->both($u, "creating new kingdom for " . $u . " at " . $loc . ". welcome to kingdoms!.");
-
-                $this->q(
-                    'INSERT INTO kingdom (username, locations, L, G, I, H, P, S,FA, BT, WO, R, D) VALUES ("' . clean($u) . '", "' . $loc . '", ' . self::$LPK . ', ' . self::$SG . ', ' . self::$SI . ', ' . self::$SH . ',' . self::$SP . ',' . self::$SS . ',' . self::$SFA . ',' . self::$SBT. ', ' . self::$SW . ', ' . self::$SR . ', ' . self::$SD . ');'
-                );
-                $details = $this->q('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";');
-                $this->both($u, "to play, type commands here. check out the play guide for detailed help");
-
-                $this->q("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($u) . "\", \"" . clean($u) . "\", \"(newplayer)\", 1);");
-                $this->q("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($u) . "\", \"" . clean($u) . "\", \"protection\", 5);");
-                $this->q("INSERT INTO items (kingdom, item, amountleft) VALUES (\"" . clean($u) . "\", \"time turner\",  20);");
-
-            }
-
-
-        }  else {
-            $this->both($u, "welcome " . $u . "! your kingdom is at the following location(s): " . $details['locations'] );
-            $this->both($u, "to play, you may either type commands in /kingdoms, or you can private message me. type !help for commands");
-        }
-    }
 
     function execute()
     {
-        $this->reply($user, $p, $this->makeNewPlayer($user));
+        $u = clean($this->__message->getAuthorName());
+
+        $details = $this->__db->executeQuery('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";');
+
+        if ($details['locations'] == "") {
+
+            $this->__db->executeQuery('DELETE FROM kingdom WHERE username = "' . clean($u) . '";');
+            $details = false;
+        }
+
+        if ($details === false) {
+            $alreadynewplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($u) . "\" AND caston = \"" . clean($u) . "\" AND spell = \"(newplayer)\" LIMIT 1;");
+            if ($alreadynewplayer) {
+                $this->__communicator->sendReply($u, "you've already created a new kingdom this turn. your people grow weary of being raped and murdered and cannot be compelled to form a new kingdom until next turn");
+            } else {
+                $this->__db->executeQuery('DELETE FROM spells WHERE castby = "' . clean($u) . '" OR caston = "' . clean($u) . '";');
+                $this->__db->executeQuery('DELETE FROM items WHERE kingdom = "' . clean($u) );
+                $this->__db->executeQuery('DELETE FROM turnnotes WHERE fromuser = "' . clean($u) . '" OR touser = "' . clean($u) . '";');
+
+                $loc = KingdomHelper::random_location();
+                while (KingdomHelper::get_username_at_location($loc)) $loc = KingdomHelper::random_location();
+
+                $this->__communicator->sendBoth($u, sprintf("creating new kingdom for %s at %s. welcome to kingdoms!.", $u, $loc));
+                $this->__db->executeQuery(
+                    'INSERT INTO kingdom (username, locations, L, G, I, H, P, S,FA, BT, WO, R, D) VALUES ("' . clean($u) . '", "' . $loc . '", ' . LAND_PER_KINGDOM . ', ' . START_GOLD . ', ' . START_IRON . ', ' . START_HOUSES . ',' . START_POPULATION . ',' . START_SOLDIERS . ',' . START_FARMS . ',' . START_BATTLEMENTS. ', ' . START_WOOD . ', ' . START_STONE . ', ' . START_DAMS . ');'
+                );
+                $details = $this->__db->executeQuery('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";');
+                $this->__communicator->sendBoth($u, "to play, type commands here. check out the play guide for detailed help");
+
+                $this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($u) . "\", \"" . clean($u) . "\", \"(newplayer)\", 1);");
+                $this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($u) . "\", \"" . clean($u) . "\", \"protection\", 5);");
+                $this->__db->executeQuery("INSERT INTO items (kingdom, item, amountleft) VALUES (\"" . clean($u) . "\", \"time turner\",  20);");
+            }
+        }  else {
+            $this->__communicator->sendBoth($u, sprintf("welcome %s! your kingdom is at the following location(s): %s", $u, $details['locations']));
+            $this->__communicator->sendBoth($u, "to play, you may either type commands in /kingdoms, or you can private message me. type !help for commands");
+        }
     }
 }

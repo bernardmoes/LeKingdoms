@@ -8,9 +8,9 @@
  */
 class Attack extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     public function conquer($attacker, $defender, $loc) {
@@ -19,14 +19,14 @@ class Attack extends Command
         $attacker = clean($attacker);
         $defender = clean($defender);
 
-        $a = $this->get_kingdom($attacker);
-        $d = $this->get_kingdom($defender);
+        $a = $this->__db->getKingdom($attacker);
+        $d = $this->__db->getKingdom($defender);
 
         if ($a === false) return $a . " does not have a kingdom";
         if ($d === false) return $d . " does not have a kingdom";
 
-        $deflocs = $this->make_loc_array($d['locations']);
-        $atklocs = $this->make_loc_array($a['locations']);
+        $deflocs = KingdomHelper::make_loc_array($d['locations']);
+        $atklocs =  KingdomHelper::make_loc_array($a['locations']);
 
         $n = count($deflocs);
 
@@ -47,8 +47,8 @@ class Attack extends Command
                 $amount = round($d[$k]/$n);
                 $a[$k] += $amount;
                 $d[$k] -= $amount;
-                $text = $this->translate($k);
-                if (!$text) $text = $this->item_translate($k);
+                $text =  KingdomHelper::translate($k);
+                if (!$text) $text =  KingdomHelper::item_translate($k);
                 if (!$text) continue;
                 if ($amount <= 0) continue;
                 $reportitems[] = $amount . " " . $text;
@@ -57,27 +57,27 @@ class Attack extends Command
 
         $report = "the spoils of war were: " . implode(', ', $reportitems);
 
-        $this->save_kingdom($a);
-        $this->save_kingdom($d);
+        $this->__db->saveKingdom($a);
+        $this->__db->saveKingdom($d);
 
         if (count($deflocs) == 0) {
             $report .=  ". ". $d['username'] . " was defeated!";
-            $this->add_turn_note($a['username'], $d['username'], "you were conquered completely by " . $a['username']);
+            KingdomHelper::add_turn_note($a['username'], $d['username'], "you were conquered completely by " . $a['username']);
         } else {
-            $this->add_turn_note($a['username'], $d['username'], "some of your lands were conquered by " . $a['username']);
+            KingdomHelper::add_turn_note($a['username'], $d['username'], "some of your lands were conquered by " . $a['username']);
         }
 
         return $report;
 
     }
 
-    function attackNow()
+    function attackNow($loc, $attacker)
     {
         $loc = explode(":", preg_replace('/[^0-9\:]/m', '', $loc));
         if (count($loc) != 2) return "invalid attack location specified!";
         $loc[0] = intval($loc[0]);
         $loc[1] = intval($loc[1]);
-        $player = $this->get_username_at_location($loc[0] . ":" . $loc[1]);
+        $player = KingdomHelper::get_username_at_location($loc[0] . ":" . $loc[1]);
         if (!$player) return "there is no kingdom at that location!";
 
 
@@ -85,17 +85,17 @@ class Attack extends Command
         // $loc[0]:$loc[1] territory
 
 
-        $a = $this->get_kingdom($attacker);
+        $a = $this->__db->getKingdom($attacker);
 
-        $d = $this->get_kingdom($player);
+        $d = $this->__db->getKingdom($player);
 
 
-        $protectedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($player) . "\" AND caston = \"" . clean($player) . "\" AND spell = \"protection\" LIMIT 1;");
+        $protectedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($player) . "\" AND caston = \"" . clean($player) . "\" AND spell = \"protection\" LIMIT 1;")->fetch(PDO::FETCH_ASSOC);
 
         if ($protectedplayer !== false) return "attack failed, " . $player . " is magically protected for " . $protectedplayer['duration'] . " more turns.";
 
 
-        $protectedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE caston = \"" . clean($attacker) . "\" AND spell = \"protection\" LIMIT 1;");
+        $protectedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE caston = \"" . clean($attacker) . "\" AND spell = \"protection\" LIMIT 1;")->fetch(PDO::FETCH_ASSOC);
         if ($protectedplayer !== false) return "you cannot attack other kingdoms while under a shield";
 
 
@@ -107,17 +107,16 @@ class Attack extends Command
 
 
 
-        $alreadyattacked = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($a['username']) . "\" AND caston = \"" . clean($d['username']) . "\" AND spell = \"(attacked)\" LIMIT 1;");
+        $alreadyattacked = $this->__db->executeQuery("SELECT * FROM spells WHERE castby = \"" . clean($a['username']) . "\" AND caston = \"" . clean($d['username']) . "\" AND spell = \"(attacked)\" LIMIT 1;")->fetch(PDO::FETCH_ASSOC);
         if ($alreadyattacked) return "you've already attacked " . $d['username'] . " this turn. your men are resting and cannot be compelled to attack again until next turn";
 
         $wardancedplayer = $this->__db->executeQuery("SELECT * FROM spells WHERE caston = \"" . clean($player) . "\" AND spell = \"wardance\";");
 
 
+        $this->__communicator->sendPublic($a['username'] . ' is attacking ' . $d['username'] . "!");
 
-        $this->room($a['username'] . ' is attacking ' . $d['username'] . "!");
-
-        $atk = $this->calculate_attack_rating($a);
-        $def = $this->calculate_defence_rating($d);
+        $atk = KingdomHelper::calculateAttackRating($a);
+        $def = KingdomHelper::calculateDefenceRating($d);
 
         $damageratio = $atk/($def + 1);
 
@@ -191,8 +190,9 @@ class Attack extends Command
         $report .= "the enemy lost " . ($defenderslost) . " soldiers and " . abs($d['HO'] - $defenderremaininghorses ) . " horses. ";
         $report .= "we have returned to our kingdom and " . ($attackersremaining > 0 ? "are ready for another battle." : "need a new army.");
 
-        $this->add_turn_note($a['username'], $d['username'], $a['username'] . " attacked your kingdom, and killed " . ($d['S'] - $defendersremaining) . " of our soldiers, and destroyed " . $ruinedbattlements . " battlements" );
-        $this->room( $a['username'] . " attacked " .  $d['username'] . ", and killed " . ($d['S'] - $defendersremaining) . " of their soldiers, and destroyed " . $ruinedbattlements . " battlements" );
+        KingdomHelper::add_turn_note($a['username'], $d['username'], $a['username'] . " attacked your kingdom, and killed " . ($d['S'] - $defendersremaining) . " of our soldiers, and destroyed " . $ruinedbattlements . " battlements" );
+
+        $this->__communicator->sendPublic($a['username'] . " attacked " .  $d['username'] . ", and killed " . ($d['S'] - $defendersremaining) . " of their soldiers, and destroyed " . $ruinedbattlements . " battlements" );
 
         $a['SI'] -= abs($siegetowerslost);
         $a['S'] = abs($attackersremaining);
@@ -212,15 +212,10 @@ class Attack extends Command
         if ($d['HO'] < 0) $d['S'] = 0;
 
 
-        $this->save_kingdom($a);
-        $this->save_kingdom($d);
-
+        $this->__db->saveKingdom($a);
+        $this->__db->saveKingdom($d);
 
         if ($defendersremaining == 0 && $battlementsleft == 0 && $attackersremaining > 0) {
-
-
-
-
             $report .= "\nwe have successfully conquered " . $d['username'] . "'s land at " . $loc[0] . ":" . $loc[1] . " ";
 
             $report .= $this->conquer($a['username'], $d['username'], $loc[0] . ":" . $loc[1]);
@@ -230,13 +225,11 @@ class Attack extends Command
                 $conquernum = rand(5,10);
 
                 for ($i = 0; $i < $conquernum; $i++) {
-                    $l = $this->find_nearest_tile_of_user($d['username'], $loc[0] . ":" . $loc[1]);
+                    $l = KingdomHelper::find_nearest_tile_of_user($d['username'], $loc[0] . ":" . $loc[1]);
                     if ($l === false) break;
                     $report .= $this->conquer($a['username'], $d['username'], $l);
                 }
             }
-
-
         }
 
         $this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($a['username']) . "\", \"" . clean($d['username']) . "\", \"(attacked)\", 1);");
@@ -248,14 +241,15 @@ class Attack extends Command
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         if (count($c) == 1) return $this->__communicator->sendReply($this->__message->getAuthorName(), "to attack another kingdom use !attack nn:mm or !attack username");
         $loc = $c[1];
         if (strrpos($loc, ":") !== false) {
             // location
-            $player = $this->get_username_at_location($loc);
+            $player = KingdomHelper::get_username_at_location($loc);
             if (!$player) return $this->__communicator->sendReply($this->__message->getAuthorName(), $loc . " is empty land. cannot attack it. maybe you could !annex instead?");
         } else {
-            $player = $this->get_kingdom($loc);
+            $player = $this->__db->getKingdom($loc);
             if ($player === false) return $this->__communicator->sendReply($this->__message->getAuthorName(), $loc . " does not have a kingdom!");
             if (strrpos($player['locations'], ",") !== false) {
                 $loc = explode(",",$player['locations']);
@@ -265,6 +259,6 @@ class Attack extends Command
 
         }
 
-        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->attack($loc, $user));
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->attackNow($loc, $this->__message->getAuthorName()));
     }
 }

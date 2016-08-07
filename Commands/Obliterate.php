@@ -8,26 +8,26 @@
  */
 class Obliterate extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
-    function oblitarateNow()
+    function oblitarateNow($u, $cloc)
     {
         $cloc =  explode(":", preg_replace('/[^0-9\:]+/sm', '', $cloc));
         $u = clean($u);
-        $d = $this->get_kingdom($u);
+        $d = $this->__db->getKingdom($u);
 
         if (count($cloc) != 2) return "please use the command like this !annex number:number";
 
         $cloc[0] = intval($cloc[0]);
         $cloc[1] = intval($cloc[1]);
 
-        if ($cloc[0] < 0 || $cloc[0] > self::$SIZE || $cloc[1] < 0 || $cloc[1] > 100) return "the specified land is outside the bounds of the world, sorry.";
+        if ($cloc[0] < 0 || $cloc[0] > MAP_SIZE || $cloc[1] < 0 || $cloc[1] > 100) return "the specified land is outside the bounds of the world, sorry.";
 
 
-        $playerlocs = $this->make_loc_array($d['locations']);
+        $playerlocs = KingdomHelper::make_loc_array($d['locations']);
 
         if (count($playerlocs) == 1) return "you cannot obliterate your last remaining land! try !selfdestruct instead?";
 
@@ -49,25 +49,25 @@ class Obliterate extends Command
             if ($k != 'username' && $k != 'locations' && $k != 'G') {
                 $newitem = round( ($v * ($lands - 1)) / $lands );
                 if ($v - $newitem > 0) {
-                    $report[] = ($v - $newitem) . " " . $this->translate($k);
+                    $report[] = ($v - $newitem) . " " . KingdomHelper::translate($k);
                 }
                 $d[$k] = $newitem;
             }
         }
 
-
-        $this->save_kingdom($d);
+        $this->__db->saveKingdom($d);
 
         return "your army sets fires across your land completely obliterating " . $cloc[0] . ":" . $cloc[1] . " and " . implode(", ", $report);
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         if (count($c) <= 1) {
-            return$this->__communicator->sendReply($this->__message->getAuthorName(), "you can obliterate some of your lands like so !obliterate nn:mm");
+            return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can obliterate some of your lands like so !obliterate nn:mm");
         } else {
             $location =  preg_replace('/[^0-9:]+/sm', '', $c[1]);
-            return $this->reply($user, $p, $this->obliterate(clean($user), $location));
+            return $this->__communicator->sendReply($this->__message->getAuthorName(), $this->oblitarateNow(clean($this->__message->getAuthorName()), $location));
         }
     }
 }

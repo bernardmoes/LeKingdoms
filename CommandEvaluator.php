@@ -9,18 +9,65 @@ require_once "Models/DiscordMessage.php";
 class CommandEvaluator
 {
     private $_commands = array(
-        'play' => 'play()', 'help' => 'help()', 'cash' => 'cash()', 'money' => 'cash()', 'space' => 'space()', 'land' => 'space()',
-        'players' => 'players()', 'thieve' => 'steal()', 'steal' => 'steal()', 'spy' => 'spy()', 'espionage' => 'spy()',
-        'esp' => 'spy()', 'spells' => 'spells()', 'items' => 'items()', 'use' => 'useCmd()', 'cast' => 'cast()',
-        'trade' => 'trade()', 'buy' => 'trade()', 'sell' => 'trade()', 'buymax' => 'buymax()', 'sellall' => 'sellall()',
-        'gift' => 'gift()', 'give' => 'gift()', 'g' => 'gift()', 'stats' => 'stats()', 'stat' => 'stats()',
-        's' => 'stats()', 'attack' => 'attack()', 'build' => 'build()', 'b' => 'build()', 'buildmax' => 'buildmax()', 'bm' => 'buildmax()',
-        'raze' => 'raze()', 'buildings' => 'buildings()', 'annex' => 'annex()', 'obliterate' => 'obliterate()', 'autoannex' => 'autoannex()',
-        'yolo' => 'yolo()', 'turn' => 'turn()', 'destroy' => 'destroy()', 'selfdestruct' => 'selfdestruct()', 'fakeplay' => 'fakeplay()',
-        'nuke' => 'nuke()', 'rape' => 'rape()', 'bernanke' => 'bernanke()', 'greenspan' => 'greenspan()', 'obama' => 'obama()',
-        'godeye' => 'godeye()', 'protect' => 'protect()', 'unprotect' => 'unprotect()', 'abra' => 'abra()', 'doubletime' => 'doubletime()',
-        'dice' => 'dice()', 'roll' => 'dice()', 'dicetext' => 'dicetext()', 'dt' => 'dicetext()', 'rt' => 'dicetext()',
-        'checkturn' => 'checkturn()', 'report' => 'report()'
+        'play' => 'play',
+        'help' =>  'help',
+        'cash' => 'cash',
+        'money' => 'cash',
+        'space' => 'space',
+        'land' => 'space',
+        'players' => 'players',
+        'thieve' => 'steal',
+        'steal' => 'steal',
+        'spy' => 'spy',
+        'espionage' => 'spy',
+        'esp' => 'spy',
+        'spells' => 'spells',
+        'items' => 'items',
+        'use' => 'useCmd',
+        'cast' => 'cast',
+        'trade' => 'trade',
+        'buy' => 'trade',
+        'sell' => 'trade',
+        'buymax' => 'buymax',
+        'sellall' => 'sellall',
+        'gift' => 'gift',
+        'give' => 'gift',
+        'g' => 'gift',
+        'stats' => 'stats',
+        'stat' => 'stats',
+        's' => 'stats',
+        'attack' => 'attack',
+        'build' => 'build',
+        'b' => 'build',
+        'buildmax' => 'buildmax',
+        'bm' => 'buildmax',
+        'raze' => 'raze',
+        'buildings' => 'buildings',
+        'annex' => 'annex',
+        'obliterate' => 'obliterate',
+        'autoannex' => 'autoannex',
+        'yolo' => 'yolo',
+        'turn' => 'turn',
+        'destroy' => 'destroy',
+        'selfdestruct' => 'selfdestruct',
+        'fakeplay' => 'fakeplay',
+        'nuke' => 'nuke',
+        'rape' => 'rape',
+        'bernanke' => 'bernanke',
+        'greenspan' => 'greenspan',
+        'obama' => 'obama',
+        'godeye' => 'godeye',
+        'protect' => 'protect',
+        'unprotect' => 'unprotect',
+        'abra' => 'abra',
+        'doubletime' => 'doubletime',
+        'dice' => 'dice',
+        'roll' => 'dice',
+        'dicetext' => 'dicetext',
+        'dt' => 'dicetext',
+        'rt' => 'dicetext',
+        'checkturn' => 'checkturn',
+        'report' => 'report'
     );
 
     /** @var DiscordMessage */
@@ -29,18 +76,19 @@ class CommandEvaluator
     private $_command;
     private $_kingdom;
     private $_communicator;
-    public function __construct($kingdom, $communicator)
+
+    public function __construct($kingdom, $communicator, $message)
     {
         $this->_kingdom = $kingdom;
         $this->_communicator = $communicator;
+        $this->_message = $message;
     }
 
-    public function evaluateCommand(DiscordMessage $message)
+    public function evaluateCommand()
     {
-        $this->_message = $message;
         if(array_key_exists($this->_message->getContentArgs()[0], $this->_commands))
         {
-            eval('return $this->'.$this->_commands[$this->_message->getContentArgs()[0]].';');
+            $this->{$this->_commands[$this->_message->getContentArgs()[0]]}();
         } else {
             $this->unknownCommand();
         }
@@ -67,6 +115,21 @@ class CommandEvaluator
         return true;
     }
 
+    public function getMessage()
+    {
+        return $this->_message;
+    }
+
+    public function getKingdom()
+    {
+        return $this->_kingdom;
+    }
+
+    public function getCommunicator()
+    {
+        return $this->_communicator;
+    }
+
     public function unknownCommand()
     {
 
@@ -74,19 +137,19 @@ class CommandEvaluator
 
     public function play()
     {
-        $this->_command = new Play($this->_message, $this->_kingdom, $this->_communicator);
+        $this->_command = new Play($this);
     }
 
     public function help()
     {
-        $this->_command = new Help($this->_message, $this->_kingdom, $this->_communicator);
+        $this->_command = new Help($this);
     }
 
     public function cash()
     {
         if($this->assertHasKingdom())
         {
-            $this->_command = new Cash($this->_message, $this->_kingdom, $this->_communicator);
+            $this->_command = new Cash($this);
         }
     }
 
@@ -94,20 +157,20 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-            $this->_command = new Space($this->_message, $this->_kingdom, $this->_communicator);
+            $this->_command = new Space($this);
         }
     }
 
     public function players()
     {
-        $this->_command = new Players($this->_message, $this->_kingdom, $this->_communicator);
+        $this->_command = new Players($this);
     }
 
     public function steal()
     {
         if($this->assertHasKingdom())
         {
-            $this->_command = new Steal($this->_message, $this->_kingdom, $this->_communicator);
+            $this->_command = new Steal($this);
         }
     }
 
@@ -115,7 +178,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-            $this->_command = new Spy($this->_message, $this->_kingdom, $this->_communicator);
+            $this->_command = new Spy($this);
         }
     }
 
@@ -123,7 +186,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-            $this->_command = new Spells($this->_message, $this->_kingdom, $this->_communicator);
+            $this->_command = new Spells($this);
         }
     }
 
@@ -131,7 +194,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-            $this->_command = new Items($this->_message, $this->_kingdom, $this->_communicator);
+            $this->_command = new Items($this);
         }
     }
 
@@ -139,7 +202,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-            
+            $this->_command = new UseCmd($this);
         }
     }
 
@@ -147,7 +210,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Cast($this);
         }
     }
 
@@ -155,7 +218,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Trade($this);
         }
     }
 
@@ -163,7 +226,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new BuyMax($this);
         }
     }
 
@@ -171,7 +234,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new SellAll($this);
         }
     }
 
@@ -179,7 +242,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Gift($this);
         }
     }
 
@@ -187,7 +250,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Stats($this);
         }
     }
 
@@ -195,7 +258,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Attack($this);
         }
     }
 
@@ -203,7 +266,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Build($this);
         }
     }
 
@@ -211,7 +274,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new BuildMax($this);
         }
     }
 
@@ -219,7 +282,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Raze($this);
         }
     }
 
@@ -227,7 +290,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Buildings($this);
         }
     }
 
@@ -235,7 +298,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Annex($this);
         }
     }
 
@@ -243,7 +306,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Obliterate($this);
         }
     }
 
@@ -251,7 +314,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new AutoAnnex($this);
         }
     }
 
@@ -259,7 +322,7 @@ class CommandEvaluator
     {
         if($this->assertHasKingdom())
         {
-
+            $this->_command = new Yolo($this);
         }
     }
 
@@ -267,7 +330,7 @@ class CommandEvaluator
     {
         if(($this->_message->isAdmin() || $this->_message->isAuthorizedBot()))
         {
-            $this->_command = new Turn($this->_message, $this->_kingdom, $this->_communicator);
+            $this->_command = new Turn($this);
         }
     }
 
@@ -275,20 +338,20 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin())
         {
-
+            $this->_command = new Destroy($this);
         }
     }
 
     public function selfdestruct()
     {
-        $this->_command = new SelfDestruct($this->_message, $this->_kingdom, $this->_communicator);
+        $this->_command = new SelfDestruct($this);
     }
 
     public function fakeplay()
     {
         if($this->_message->isAdmin())
         {
-
+            $this->_command = new FakePlay($this);
         }
     }
 
@@ -296,7 +359,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin())
         {
-
+            $this->_command = new Nuke($this);
         }
     }
 
@@ -304,7 +367,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin())
         {
-
+            $this->_command = new Rape($this);
         }
     }
 
@@ -312,7 +375,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin() && $this->assertHasKingdom())
         {
-
+            $this->_command = new Bernanke($this);
         }
     }
 
@@ -320,7 +383,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin() && $this->assertHasKingdom())
         {
-
+            $this->_command = new GreenSpan($this);
         }
     }
 
@@ -328,7 +391,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin() && $this->assertHasKingdom())
         {
-
+            $this->_command = new Obama($this);
         }
     }
 
@@ -336,7 +399,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin())
         {
-
+            $this->_command = new Godeye($this);
         }
     }
 
@@ -344,7 +407,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin())
         {
-
+            $this->_command = new Protect($this);
         }
     }
 
@@ -352,7 +415,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin())
         {
-
+            $this->_command = new UnProtect($this);
         }
     }
 
@@ -360,7 +423,7 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin() && $this->assertHasKingdom())
         {
-
+            $this->_command = new Abra($this);
         }
     }
 
@@ -368,28 +431,28 @@ class CommandEvaluator
     {
         if($this->_message->isAdmin())
         {
-
+            $this->_command = new DoubleTime($this);
         }
     }
 
     public function dice()
     {
-        $this->_command = new Dice($this->_message, $this->_kingdom, $this->_communicator);
+        $this->_command = new Dice($this);
     }
 
     public function dicetext()
     {
-        $this->_command = new DiceText($this->_message, $this->_kingdom, $this->_communicator);
+        $this->_command = new DiceText($this);
     }
 
     public function checkturn()
     {
-        $this->_command = new CheckTurn($this->_message, $this->_kingdom, $this->_communicator);
+        $this->_command = new CheckTurn($this);
     }
 
     public function report()
     {
-        $this->_command = new Report($this->_message, $this->_kingdom, $this->_communicator);
+        $this->_command = new Report($this);
     }
 
 

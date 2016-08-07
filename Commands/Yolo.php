@@ -8,19 +8,17 @@
  */
 class Yolo extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
-    function execute()
+    function yoloNow($u)
     {
-        $u = clean($u);
-
         // check enough food
-        $d = $this->get_kingdom($u);
+        $d = $this->__db->getKingdom($u);
 
-        $popcap = round(self::$PPH * $d['H']);
+        $popcap = round(PEOPLE_PER_HOUSE * $d['H']);
         $wineneeded =  ($d['P'] *5 +1);
         $foodneeded =  ($d['P'] *4 +1);
 
@@ -43,9 +41,15 @@ class Yolo extends Command
 
         $report = "your people throw a massive feast, consuming " . $wineneeded . " flagons of wine and " . $foodneeded . " servings of food. after eating they retire to the orgarium for dirty cuddles. " . $newpeople . " new people were subsequently added to your kingdom's population.";
 
-        $this->save_kingdom($d);
+        $this->__db->saveKingdom($d);
         //	$this->__db->executeQuery("INSERT INTO spells (castby, caston, spell, duration) VALUES (\"" . clean($u) . "\", \"" . clean($u) . "\", \"(yolo)\", 1);");
 
-        return $report;
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $report);
+    }
+
+    function execute()
+    {
+
+        $this->__communicator->sendReply($this->__message->getAuthorName(), $this->yoloNow(clean($this->__message->getAuthorName())));
     }
 }

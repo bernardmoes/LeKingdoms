@@ -8,12 +8,12 @@
  */
 class Trade extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
-    function tradeNow()
+    function tradeNow($u, $bs, $amount, $item)
     {
         $u = clean($u);
         $b = ($bs == "buy");
@@ -28,9 +28,8 @@ class Trade extends Command
 
         if ($item == 'faggot' || $item == 'faggots') $item = 'wood';
 
-        $k = $this->get_kingdom(clean($u));
-        $prices = $this->calculate_prices($k, !$b);
-
+        $k = $this->__db->getKingdom(clean($u));
+        $prices = KingdomHelper::calculate_prices($k, !$b);
 
 
         if (!isset($prices[$item]))  {
@@ -45,7 +44,7 @@ class Trade extends Command
 
         if ($b &&  $purchasecost > $k['G']) return "you do not have enough money for this trade! ";
 
-        $t = $this->item_translate($item);
+        $t = KingdomHelper::item_translate($item);
         if ($t === false) return "invalid item specified";
 
         if (!$b && $amount > $k[$t]) return "you do not have enough " . $item . " to sell that much!";
@@ -54,7 +53,7 @@ class Trade extends Command
 
         if ($b) {
 
-            if ($k[$t] + $amount > 32767) return "buying this many "  . $this->translate($t) . " would exceed the unit cap of 32767.";
+            if ($k[$t] + $amount > 32767) return "buying this many "  . KingdomHelper::translate($t) . " would exceed the unit cap of 32767.";
             $k[$t] += $amount;
             $k['G'] -= $purchasecost;
         } else {
@@ -62,22 +61,24 @@ class Trade extends Command
             $k['G'] += $salecost;
         }
 
-        $this->save_kingdom($k);
+        $this->__db->saveKingdom($k);
+
         return ($b ? "bought " : "sold ") . $amount . " " . $item . ". you have " . $k['G'] . " gc in your coffers";
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         if ($c[0] != 'trade') array_unshift($c, 'trade');
-        $k = $this->get_kingdom($user);
+        $k = $this->__db->getKingdom($this->__message->getAuthorName());
         if ($k['TC'] < 1) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you cannot trade until you have at least one trading center");
         if (count($c) < 4) return $this->__communicator->sendReply($this->__message->getAuthorName(), "specify an item to trade using like so: !trade sell 10 wood. you can buy and sell food, water, wood, soldiers and stone.");
         if (!($c[1] == 'buy' || $c[1] == 'sell')) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you can't " . $c[1] . " you can only buy or sell. try for example: !trade buy 2 food");
 
         if (intval($c[2]) . "" == $c[2]) {
-            $this->__communicator->sendReply($this->__message->getAuthorName(), $this->trade($user, $c[1], $c[2], $c[3]));
+            $this->__communicator->sendReply($this->__message->getAuthorName(), $this->trade($this->__message->getAuthorName(), $c[1], $c[2], $c[3]));
         } else {
-            $this->__communicator->sendReply($this->__message->getAuthorName(), $this->trade($user, $c[1], $c[3], $c[2]));
+            $this->__communicator->sendReply($this->__message->getAuthorName(), $this->trade($this->__message->getAuthorName(), $c[1], $c[3], $c[2]));
 
         }
     }

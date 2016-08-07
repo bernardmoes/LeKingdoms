@@ -8,16 +8,13 @@
  */
 class Play extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
-
-    function execute()
+    function createFakePlayer($u)
     {
-        $u = clean($this->__message->getAuthorName());
-
         $details = $this->__db->executeQuery('SELECT username, locations FROM kingdom WHERE username = "' . clean($u) . '";')->fetch(PDO::FETCH_ASSOC);;
 
         if ($details['locations'] == "") {
@@ -53,5 +50,10 @@ class Play extends Command
             $this->__communicator->sendBoth($u, sprintf("welcome %s! your kingdom is at the following location(s): %s", $u, $details['locations']));
             $this->__communicator->sendBoth($u, "to play, you may either type commands in /kingdoms, or you can private message me. type !help for commands");
         }
+    }
+
+    function execute()
+    {
+        $this->createFakePlayer(clean($this->__message->getAuthorName()));
     }
 }

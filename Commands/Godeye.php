@@ -8,17 +8,18 @@
  */
 class Godeye extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         if (count($c) != 2) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !godeye username");
-        $k = $this->get_kingdom(clean($c[1]));
+        $k = $this->__db->getKingdom(clean($c[1]));
         if (!$k) return $this->__communicator->sendReply($this->__message->getAuthorName(),"user " . $c[1] . " does not have a kingdom");
 
-        return $this->__communicator->sendReply($this->__message->getAuthorName(),$this->print_kingdom(  $k  ));
+        return $this->__communicator->sendReply($this->__message->getAuthorName(), KingdomHelper::printKingdom($k));
     }
 }

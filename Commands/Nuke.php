@@ -8,13 +8,14 @@
  */
 class Nuke extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         $this->__db->executeQuery("DELETE FROM kingdom;");
         $this->__db->executeQuery("DELETE FROM turnnotes;");
         $this->__db->executeQuery("DELETE FROM spells;");
@@ -25,6 +26,6 @@ class Nuke extends Command
         $text = preg_replace('/[^a-zA-Z0-9: .\-,]/m', '', implode(" ", $c));
 
         $this->__db->executeQuery("UPDATE worldvars SET value = UNHEX('" . bin2hex($text) . "') where name = 'ageof';");
-        $this->room("sythe nuked the entire world. we welcome the new age of " . $text);
+        $this->__communicator->sendPublic("Sythe nuked the entire world. we welcome the new age of " . $text);
     }
 }

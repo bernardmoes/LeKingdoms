@@ -8,13 +8,14 @@
  */
 class Destroy extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         $this->__db->executeQuery('DELETE FROM kingdom WHERE username = "' . clean($c[1]) . '" LIMIT 1;');
         $this->__communicator->sendReply($this->__message->getAuthorName(), "kingdom of " . clean($c[1]) . " has been razed to the ground!");
     }

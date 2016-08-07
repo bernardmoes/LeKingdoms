@@ -8,18 +8,19 @@
  */
 class Gift extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         if (count($c) < 3) return $this->__communicator->sendReply($this->__message->getAuthorName(),"try !gift yourfriend 500");
-        $k = $this->get_kingdom($user);
-        $f = $this->get_kingdom($c[1]);
+        $k = $this->__kingdom;
+        $f = $this->__db->getKingdom($c[1]);
 
-        if($k === false) 	return $this->__communicator->sendReply($this->__message->getAuthorName(),"cannot !gift if you don't have a kingdom. try !play");
+        if($k === false) return $this->__communicator->sendReply($this->__message->getAuthorName(),"cannot !gift if you don't have a kingdom. try !play");
         if($f === false) return $this->__communicator->sendReply($this->__message->getAuthorName(),$c[1] . " does not have a kingdom");
 
         if ($k['username'] == $f['username']) return $this->__communicator->sendReply($this->__message->getAuthorName(),"you cannot gift to yourself");
@@ -28,9 +29,9 @@ class Gift extends Command
         $k['G'] -= $amount;
         $f['G'] += $amount;
 
-        $this->save_kingdom($k);
-        $this->save_kingdom($f);
-        return $this->room($user . " gifted " . $amount . " gc to " . $c[1]);
+        $this->__db->saveKingdom($k);
+        $this->__db->saveKingdom($f);
+        return $this->__communicator->sendPublic($this->__message->getAuthorName() . " gifted " . $amount . " gc to " . $c[1]);
 
     }
 }

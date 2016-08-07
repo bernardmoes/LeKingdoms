@@ -8,13 +8,13 @@
  */
 class FakePlay extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     function execute()
     {
-        $this->new_player("fakeplayer" . rand(100,10000));
+        (new Play($this->__commandEvaluator))->createFakePlayer("fakeplayer" . rand(100,10000));
     }
 }

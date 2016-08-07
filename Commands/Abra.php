@@ -8,23 +8,24 @@
  */
 class Abra extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         if (count($c) != 5) return $this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !abra soldiers weapons horses battlements");
-        $k = $this->get_kingdom(clean($user));
+        $k = $this->__db->getKingdom(clean($this->__message->getAuthorName()));
 
         $k['S'] = intval($c[1]);
         $k['W'] = intval($c[2]);
         $k['HO'] = intval($c[3]);
-        $k['B'] = intval($c[4]);
+        $k['BT'] = intval($c[4]);
 
-        $this->save_kingdom($k);
+        $this->__db->saveKingdom($k);
 
-        return $this->room( "sythe magicked himself an army.");
+        return $this->__communicator->sendPublic($this->__message->getAuthorName() . " magicked himself an army.");
     }
 }

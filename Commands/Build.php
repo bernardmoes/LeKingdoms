@@ -8,37 +8,38 @@
  */
 class Build extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
-    function buildNow()
+    public function buildNow($b, $a)
     {
+        $u = $this->__message->getAuthorName();
         $b = preg_replace('/[^A-Z]+/sm', '', $b);
         $a = abs(intval($a));
 
-        $d = $this->get_kingdom(clean($u));
+        $d = $this->__kingdom;
         if ($d === false) return "user does not exist";
-        if (!isset(self::$buildings[$b])) {
-            if (!isset(self::$buildings[$b . 's'])) {
+        if (!isset(KingdomHelper::$buildings[$b])) {
+            if (!isset(KingdomHelper::$buildings[$b . 's'])) {
 
                 return "building type does not exist (" . $b . ")";
             } else $b .= 's';
         }
         if ($a <= 0) $a = 1;
 
-        $gold = (self::$buildings[$b]['g'] * $a);
-        $spacesaving = ( (self::$buildings[$b]['l'] * $a) * abs(1  - self::$TIA) * $d['TI'] );
+        $gold = (KingdomHelper::$buildings[$b]['g'] * $a);
+        $spacesaving = ( (KingdomHelper::$buildings[$b]['l'] * $a) * abs(1  - TECHNICAL_INSTITUTE_ADVANTAGE_RATE) * $d['TI'] );
 
-        $land = (self::$buildings[$b]['l'] * $a);
+        $land = (KingdomHelper::$buildings[$b]['l'] * $a);
 
         if ($spacesaving > 0.5 * $land) $spacesaving = 0.5 * $land;
         $land -= $spacesaving;
 
-        $rock = (self::$buildings[$b]['r'] * $a);
-        $iron = (self::$buildings[$b]['i'] * $a);
-        $wood = (self::$buildings[$b]['wo'] * $a);
+        $rock = (KingdomHelper::$buildings[$b]['r'] * $a);
+        $iron = (KingdomHelper::$buildings[$b]['i'] * $a);
+        $wood = (KingdomHelper::$buildings[$b]['wo'] * $a);
 
         $report = "";
 
@@ -48,7 +49,7 @@ class Build extends Command
         if ($d['I'] < $iron) $report .= "not enough iron, needed at least " . $iron . " iron bars. ";
         if ($d['WO'] < $wood) $report .= "not enough wood, needed at least " . $wood . " faggots. ";
 
-        if ($d[$b] + $a > 32767) $report .= "building this many " . $this->translate($b) . " would exceed the maximum allowable structures of 32767. ";
+        if ($d[$b] + $a > 32767) $report .= "building this many " . KingdomHelper::translate($b) . " would exceed the maximum allowable structures of 32767. ";
 
         if ($report != "") return $report;
 
@@ -78,13 +79,13 @@ class Build extends Command
         $d['WO'] = $woodleft;
         $d[$b] = $built;
 
-        $this->save_kingdom($d);
-
-        return "built " . $a . " " . self::$buildings_key[$b] . ". you have " . $rep . " remaining";
+        $this->__db->saveKingdom($d);
+        return "built " . $a . " " . KingdomHelper::$buildings_key[$b] . ". you have " . $rep . " remaining";
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         if (count($c) <= 1) {
            $this->__communicator->sendReply($this->__message->getAuthorName(), "try !build [building type] [amount]. for a list of buildings try !buildings");
         } else {
@@ -113,101 +114,10 @@ class Build extends Command
             if ($buildingtype == "houses") $buildingtype = "house";
 
 
-            $building = (isset(self::$buildings_lookup[$buildingtype]) ? self::$buildings_lookup[$buildingtype] : false);
+            $building = (isset(KingdomHelper::$buildings_lookup[$buildingtype]) ? KingdomHelper::$buildings_lookup[$buildingtype] : false);
 
 
-           $this->__communicator->sendReply($this->__message->getAuthorName(), ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->build($user, $building, $amount)));
-        }
-    }
-}
-
-class BuildMax extends Command
-{
-    public function __construct($message, $kingdom, $communicator)
-    {
-        parent::__construct($message, $kingdom, $communicator);
-    }
-
-    function buildMaxNow()
-    {
-        $b = preg_replace('/[^A-Z]+/sm', '', $b);
-        $a = abs(intval($a));
-
-        $d = $this->get_kingdom(clean($u));
-        if ($d === false) return "user does not exist";
-        if (!isset(self::$buildings[$b])) {
-            if (!isset(self::$buildings[$b . 's'])) {
-
-                return "building type does not exist (" . $b . ")";
-            } else $b .= 's';
-        }
-
-
-
-        $amount = 32767 - $d[$b];
-
-        if (self::$buildings[$b]['g'] > 0) {
-            $tmp = $d['G'] / self::$buildings[$b]['g'];
-            if ($tmp < $amount) $amount = $tmp;
-        }
-
-
-        if ($d['L'] == 0) {
-            $amount = 0;
-        } else {
-            $spacesaving = ( (self::$buildings[$b]['l'] ) * abs(1  - self::$TIA) * $d['TI'] );
-            $land = (self::$buildings[$b]['l'] );
-            if ($spacesaving > 0.5 ) $spacesaving = $land;
-            $land -= $spacesaving;
-
-
-            if ($land > 0) {
-                $tmp = round($d['L'] / $land);
-                if ($tmp < $amount) $amount = $tmp;
-            }
-
-        }
-
-        if (self::$buildings[$b]['r'] > 0) {
-            $tmp = round($d['R'] / self::$buildings[$b]['r']);
-            if ($tmp < $amount) $amount = $tmp;
-        }
-
-
-        if (self::$buildings[$b]['i'] > 0) {
-            $tmp = round($d['I'] / self::$buildings[$b]['i']);
-            if ($tmp < $amount) $amount = $tmp;
-        }
-
-        if (self::$buildings[$b]['wo'] > 0) {
-            $tmp = round($d['WO'] / self::$buildings[$b]['wo']);
-            if ($tmp < $amount) $amount = $tmp;
-        }
-
-        if ($amount == 0) return "cannot build even one " . $this->translate($b) . "; " . $this->build($u, $b, 1);
-        return $this->build($u, $b, $amount);
-    }
-
-    function execute()
-    {
-        if (count($c) <= 1) {
-           $this->__communicator->sendReply($this->__message->getAuthorName(), "try !buildmax [building type]. for a list of buildings try !buildings");
-        } else {
-            unset($c[0]);
-            $buildingtype = implode(" ", $c);
-
-            if ($buildingtype == "battlement") $buildingtype = "battlements";
-            if ($buildingtype == "trading center") $buildingtype = "trade center";
-            if ($buildingtype == "thieve") $buildingtype = "thieves den";
-            if ($buildingtype == "thieves") $buildingtype = "thieves den";
-            if ($buildingtype == "theives den") $buildingtype = "thieves den";
-            if ($buildingtype == "theives") $buildingtype = "thieves den";
-            if ($buildingtype == "trade") $buildingtype = "trade center";
-            if ($buildingtype == "houses") $buildingtype = "house";
-
-            $building = (isset(self::$buildings_lookup[$buildingtype]) ? self::$buildings_lookup[$buildingtype] : false);
-
-           $this->__communicator->sendReply($this->__message->getAuthorName(), ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->buildmax($user, $building)));
+           $this->__communicator->sendReply($this->__message->getAuthorName(), ($building === false ? "invalid building type specified. try !buildings for a list of valid buildings" : $this->buildNow($building, $amount)));
         }
     }
 }

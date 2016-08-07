@@ -8,16 +8,16 @@
  */
 class Bernanke extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     function execute()
     {
-        $this->room("sythe obtains 1000 gc for doing nothing");
-        $k = $this->get_kingdom("sythe");
+        $this->__communicator->sendPublic($this->__message->getAuthorName() ." obtains 1000 gc for doing nothing");
+        $k = $this->__db->getKingdom(clean($this->__message->getAuthorName()));
         $k['G'] += 1000;
-        $this->save_kingdom($k);
+        $this->__db->saveKingdom($k);
     }
 }

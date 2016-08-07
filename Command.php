@@ -15,12 +15,15 @@ abstract class Command
     protected $__kingdom;
     /** @var Communicator */
     protected $__communicator;
-    public function __construct($message, $kingdom, $communicator)
+    /** @var CommandEvaluator */
+    protected $__commandEvaluator;
+    public function __construct(CommandEvaluator $evaluator)
     {
-        $this->__message = $message;
-        $this->__kingdom = $kingdom;
+        $this->__message = $evaluator->getMessage();
+        $this->__kingdom = $evaluator->getKingdom();
         $this->__db = DBCommunicator::getInstance();
-        $this->__communicator = $communicator;
+        $this->__communicator = $evaluator->getCommunicator();
+        $this->__commandEvaluator = $evaluator;
     }
 
     abstract function execute();

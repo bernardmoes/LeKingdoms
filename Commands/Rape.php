@@ -8,16 +8,17 @@
  */
 class Rape extends Command
 {
-    public function __construct($message, $kingdom, $communicator)
+    public function __construct(CommandEvaluator $evaluator)
     {
-        parent::__construct($message, $kingdom, $communicator);
+        parent::__construct($evaluator);
     }
 
     function execute()
     {
+        $c = $this->__message->getContentArgs();
         if (count($c) != 2) return 	$this->__communicator->sendReply($this->__message->getAuthorName(), "you mean !rape fendle?");
 
-        $k = $this->get_kingdom(clean($c[1]));
+        $k = $this->__db->getKingdom(clean($c[1]));
         $lostsold = $k['S'];
         $lostbattlements = $k['BT'];
         $lostpop = round($k['P'] / 2);
@@ -28,8 +29,8 @@ class Rape extends Command
         $k['P'] -= $lostpop;
         if ($k['P'] < 5) $k['P'] = 5;
 
-        $this->room("a mysterious raping force appears at " . $c[1] . "'s kingdom. " . $lostsold . " soldiers have their bottoms violated and subsequently hobble from the kingdom never to be seen again. as a result " . $lostbattlements . " battlements fell apart and will need to be replaced. many civilians were also unpleasantly greeted in their bedrooms resulting in " . $lostpop . " fleeing the castle.");
+        $this->__communicator->sendPublic("a mysterious raping force appears at " . $c[1] . "'s kingdom. " . $lostsold . " soldiers have their bottoms violated and subsequently hobble from the kingdom never to be seen again. as a result " . $lostbattlements . " battlements fell apart and will need to be replaced. many civilians were also unpleasantly greeted in their bedrooms resulting in " . $lostpop . " fleeing the castle.");
 
-        $this->save_kingdom($k);
+        $this->__db->saveKingdom($k);
     }
 }
